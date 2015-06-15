@@ -1,0 +1,54 @@
+buildscript {
+    repositories {
+        mavenCentral()
+
+    }
+    dependencies {
+        classpath("org.springframework.boot:spring-boot-gradle-plugin:1.2.3.RELEASE")
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+apply plugin: 'spring-boot'
+apply plugin: 'maven'
+
+jar {
+    baseName = 'lct-ws'
+    version =  '0.1.0'
+}
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+/*    maven {
+        url "https://jitpack.io"
+    }*/
+}
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+dependencies {
+    compile("org.springframework.boot:spring-boot-starter-web")
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
+    compile("com.google.api-client:google-api-client:1.20.0")
+    compile("com.google.apis:google-api-services-oauth2:v2-rev91-1.20.0")
+    compile("com.restfb:restfb:1.11.0")
+    compile("org.twitter4j:twitter4j-core:4.0.3")
+    compile("com.nimbusds:nimbus-jose-jwt:3.10")
+    compile("joda-time:joda-time:2.8")
+
+//    compile("org.springframework.cloud:spring-cloud-security:1.0.1.RELEASE")
+    compile("org.apache.commons:commons-lang3:3.1")
+    compile("org.lct:gameboard-ws:0.1.0")
+    testCompile("org.springframework.boot:spring-boot-starter-test")
+    testCompile("junit:junit")
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '2.3'
+}
+
+mainClassName = "org.lct.game.ws.Application"
