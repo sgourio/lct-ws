@@ -8,6 +8,7 @@ package org.lct.game.ws.filters;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.ReadOnlyJWTClaimsSet;
+import org.apache.commons.lang3.StringUtils;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.dao.UserRepository;
 import org.slf4j.Logger;
@@ -51,24 +52,29 @@ public class AuthenticationFilter extends GenericFilterBean{
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         if( !httpRequest.getMethod().equals(HttpMethod.OPTIONS.name()) ) {
             String authHeader = httpRequest.getHeader("Authorization");
-            try {
-                String token = AuthUtils.getSerializedToken(authHeader);
-                if (token != null) {
-                    User user = userRepository.getUserByToken(token);
-                    if (user != null) {
-                        RequestContextHolder.currentRequestAttributes().setAttribute("user", user, RequestAttributes.SCOPE_REQUEST);
-                        chain.doFilter(request, response);
+            if( !StringUtils.isEmpty(authHeader) ) {
+                try {
+                    String token = AuthUtils.getSerializedToken(authHeader);
+                    if (token != null) {
+                        User user = userRepository.getUserByToken(token);
+                        if (user != null) {
+                            RequestContextHolder.currentRequestAttributes().setAttribute("user", user, RequestAttributes.SCOPE_REQUEST);
+                            chain.doFilter(request, response);
+                        } else {
+                            HttpServletResponse httpResponse = (HttpServletResponse) response;
+                            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "user not found for token");
+                        }
                     } else {
                         HttpServletResponse httpResponse = (HttpServletResponse) response;
-                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "user not found for token");
+                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token not found in request header");
                     }
-                } else {
-                    HttpServletResponse httpResponse = (HttpServletResponse) response;
-                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "token not found in request header");
-                }
 
-            } catch (Exception e) {
-                logger.error("", e);
+                } catch (Exception e) {
+                    logger.error("", e);
+                }
+            }else{
+                HttpServletResponse httpResponse = (HttpServletResponse) response;
+                httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "header Authorization missing");
             }
         }
     }

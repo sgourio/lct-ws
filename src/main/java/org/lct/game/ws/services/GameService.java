@@ -10,6 +10,8 @@ package org.lct.game.ws.services;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.services.exceptions.IncompleteGameException;
 
+import java.util.List;
+
 /**
  * Created by sgourio on 22/03/15.
  */
@@ -17,6 +19,9 @@ public interface GameService {
 
     public void add(Game game) throws RuntimeException;
     public void save(Game game) throws RuntimeException;
+    public Game getById(String gameId);
+    public List<Game> getByAuthorId(String authorId);
+
 //    /**
 //     * Load BDD game to modelView CurrentGame
 //     * @param game

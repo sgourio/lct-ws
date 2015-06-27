@@ -15,7 +15,6 @@ import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.exceptions.IncompleteGameException;
 import org.lct.game.ws.services.exceptions.InvalidRoundException;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
-import org.lct.gameboard.ws.beans.model.SquareType;
 import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
@@ -58,6 +57,16 @@ public class GameServiceImpl implements GameService{
         if( check(game) ) {
             this.repository.save(game);
         }
+    }
+
+    @Override
+    public Game getById(String gameId) {
+        return this.repository.findOne(gameId);
+    }
+
+    @Override
+    public List<Game> getByAuthorId(String authorId) {
+        return this.repository.findByAuthorId(authorId);
     }
 
     /**

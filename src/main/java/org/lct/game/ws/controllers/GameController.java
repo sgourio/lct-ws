@@ -6,8 +6,11 @@
 
 package org.lct.game.ws.controllers;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.beans.model.Game;
+import org.lct.game.ws.beans.model.GameMetaBean;
+import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.exceptions.IncompleteGameException;
 import org.lct.gameboard.ws.services.BoardService;
@@ -17,7 +20,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.servlet.ModelAndView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sgourio on 25/05/15.
@@ -51,17 +58,41 @@ public class GameController {
     @RequestMapping(value="/add", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.CREATED)
     @ResponseBody
-    public String create(@PathVariable("lang") String lang, @RequestBody Game game) throws IncompleteGameException{
-        logger.info("Create game");
-        gameService.add(game);
+    public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException{
+        logger.info("Create game...");
+        gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId()));
         return game.getId();
     }
 
     @RequestMapping(value="/{id}", method= RequestMethod.PUT, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public void put(@PathVariable("lang") String lang, @PathVariable("id") String id, @RequestBody Game game) throws IncompleteGameException {
-        logger.info("save game " + game.getName());
-        gameService.save(game);
+    public void put(@PathVariable("lang") String lang, @PathVariable("id") String id, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException {
+        logger.info("save game " + game.getName() +"...");
+        gameService.save(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId()));
+    }
+
+    @RequestMapping(value="/{id}", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public Game readGame(@PathVariable("lang") String lang, @PathVariable("id") String id) throws IncompleteGameException {
+        logger.info("Get game " + id);
+        return gameService.getById(id);
+    }
+
+    @RequestMapping(value="/", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public List<GameMetaBean> findGameByAuthor(@PathVariable("lang") String lang, @ModelAttribute("user") User user) throws IncompleteGameException {
+        logger.info("Get game for author" + user);
+        List<Game> gameList = gameService.getByAuthorId(user.getId());
+        List<GameMetaBean> gameMetaBeanList = new ArrayList<>();
+        ObjectMapper mapper = new ObjectMapper();
+        for( Game game : gameList ){
+            GameMetaBean gameMetaBean = mapper.convertValue(game, GameMetaBean.class);
+            gameMetaBeanList.add(gameMetaBean);
+        }
+
+        return gameMetaBeanList;
     }
 }

@@ -21,12 +21,14 @@ public class Game {
 
     private final String name;
     private final String lang;
+    private final String authorId;
     private final List<Round> roundList;
 
-    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList) {
+    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList, @JsonProperty("authorId") String authorId) {
         this.name = name;
         this.lang = lang;
         this.roundList = roundList;
+        this.authorId = authorId;
     }
 
     public String getName() {
@@ -43,5 +45,15 @@ public class Game {
 
     public String getId() {
         return id;
+    }
+
+    public String getAuthorId() {
+        return authorId;
+    }
+
+
+    @Override
+    public String toString() {
+        return name;
     }
 }
