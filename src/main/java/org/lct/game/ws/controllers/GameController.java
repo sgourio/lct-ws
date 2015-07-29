@@ -60,7 +60,12 @@ public class GameController {
     @ResponseBody
     public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException{
         logger.info("Create game...");
-        gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId()));
+        try {
+            gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId()));
+        }catch (Exception e){
+            logger.error("",e);
+            throw e;
+        }
         return game.getId();
     }
 

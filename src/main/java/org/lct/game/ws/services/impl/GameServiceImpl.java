@@ -22,6 +22,8 @@ import org.lct.gameboard.ws.beans.view.Square;
 import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
 import org.lct.gameboard.ws.services.impl.DeckTemplateEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -32,6 +34,8 @@ import java.util.Set;
  * Created by sgourio on 25/05/15.
  */
 public class GameServiceImpl implements GameService{
+    private static Logger logger = LoggerFactory.getLogger(GameServiceImpl.class);
+
 
     private final GameRepository repository;
 
@@ -49,6 +53,8 @@ public class GameServiceImpl implements GameService{
     public void add(Game game) throws RuntimeException {
         if( check(game) ) {
             this.repository.insert(game);
+        }else{
+            logger.info("Error, game check failed");
         }
     }
 
