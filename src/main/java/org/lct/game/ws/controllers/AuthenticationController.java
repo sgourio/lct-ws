@@ -32,6 +32,7 @@ import org.lct.game.ws.services.exceptions.IncompleteGameException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -62,13 +63,25 @@ public class AuthenticationController {
     @Autowired
     private UserRepository userRepository;
 
+    @Value("${spring.oauth2.client.clientId}")
+    private String googleClientId;
+
+    @Value("${spring.oauth2.client.clientSecret}")
+    private String googleSecret;
+
+    @Value("${facebook.appId}")
+    private String facebookClientId;
+
+    @Value("${facebook.appSecret}")
+    private String facebookSecret;
+
     @RequestMapping(value="/google", method= RequestMethod.POST)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public Token autenticateGoogle(@RequestBody final Payload payload) throws IncompleteGameException, IOException, JOSEException {
         GoogleTokenResponse tokenResponse =
                 new GoogleAuthorizationCodeTokenRequest(new NetHttpTransport(), new JacksonFactory(),
-                        "232967929857-ilihjfcnbr6cnd14mnc1bhff4jlk8ct8.apps.googleusercontent.com", "UdPYV2xD5WWtkttUKG3lK37Y",
+                        googleClientId, googleSecret,
                         payload.getCode(), payload.getRedirectUri())
                         .execute();
         // valid token on google
@@ -98,7 +111,7 @@ public class AuthenticationController {
     @ResponseBody
     public Token autenticateFacebook(@RequestBody final Payload payload) throws IncompleteGameException, IOException, JOSEException {
         FacebookClient facebookClient = new DefaultFacebookClient(Version.VERSION_2_3);
-        FacebookClient.AccessToken accessToken = facebookClient.obtainUserAccessToken("274714975961675", "d23b21e74ab2d2364e4a80cb0be47dfe", payload.getRedirectUri(), payload.getCode() );
+        FacebookClient.AccessToken accessToken = facebookClient.obtainUserAccessToken(facebookClientId, facebookSecret, payload.getRedirectUri(), payload.getCode() );
         FacebookClient facebookUserClient = new DefaultFacebookClient(accessToken.getAccessToken(), Version.VERSION_2_3);
         com.restfb.types.User facebookUser = facebookUserClient.fetchObject("me", com.restfb.types.User.class);
 

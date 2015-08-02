@@ -15,10 +15,14 @@ package org.lct.game.ws;
 import org.lct.game.ws.dao.UserRepository;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.filters.WSSimpleCORSFilter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
@@ -27,8 +31,12 @@ import org.springframework.context.annotation.FilterType;
 @ComponentScan(basePackages = "org.lct", excludeFilters = @ComponentScan.Filter(pattern="org.lct.gameboard.ws.filters.SimpleCORSFilter",type = FilterType.REGEX))
 public class Application {
 
+
+    private static Logger logger = LoggerFactory.getLogger(Application.class);
+
     public static void main(String[] args) {
-        SpringApplication.run(org.lct.game.ws.Application.class, args);
+        ConfigurableApplicationContext cac = SpringApplication.run(org.lct.game.ws.Application.class, args);
+        logger.info("Application started with profile '" + cac.getEnvironment().getProperty("profile.name") + "'");
     }
 
     @Autowired
