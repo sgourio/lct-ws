@@ -12,9 +12,12 @@
 
 package org.lct.game.ws;
 
+import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.UserRepository;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.filters.WSSimpleCORSFilter;
+import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.tasks.ScheduledTasks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,8 +29,10 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.FilterType;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @SpringBootApplication
+@EnableScheduling
 @ComponentScan(basePackages = "org.lct", excludeFilters = @ComponentScan.Filter(pattern="org.lct.gameboard.ws.filters.SimpleCORSFilter",type = FilterType.REGEX))
 public class Application {
 
@@ -42,6 +47,10 @@ public class Application {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private EventService eventService;
+
+
     @Bean
     public FilterRegistrationBean filterRegistrationBean() {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean();
@@ -54,7 +63,7 @@ public class Application {
     @Bean
     public FilterRegistrationBean authenticationFilterBean() {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-        AuthenticationFilter corsFilter = new AuthenticationFilter(userRepository);
+        AuthenticationFilter corsFilter = new AuthenticationFilter(userRepository, eventService);
         registrationBean.setFilter(corsFilter);
         registrationBean.addUrlPatterns("/board/*", "/game/*");
         registrationBean.setOrder(0);

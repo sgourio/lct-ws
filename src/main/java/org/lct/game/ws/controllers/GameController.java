@@ -58,7 +58,7 @@ public class GameController {
     @RequestMapping(value="/add", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.CREATED)
     @ResponseBody
-    public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException{
+    public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws Exception{
         logger.info("Create game...");
         try {
             gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId()));
@@ -91,7 +91,7 @@ public class GameController {
     public List<GameMetaBean> findGameByAuthor(@PathVariable("lang") String lang, @ModelAttribute("user") User user) throws IncompleteGameException {
         logger.info("Get game for author" + user);
         List<Game> gameList = gameService.getByAuthorId(user.getId());
-        List<GameMetaBean> gameMetaBeanList = new ArrayList<>();
+        List<GameMetaBean> gameMetaBeanList = new ArrayList<GameMetaBean>();
         ObjectMapper mapper = new ObjectMapper();
         for( Game game : gameList ){
             GameMetaBean gameMetaBean = mapper.convertValue(game, GameMetaBean.class);

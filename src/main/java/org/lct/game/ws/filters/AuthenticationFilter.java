@@ -9,8 +9,11 @@ package org.lct.game.ws.filters;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jwt.ReadOnlyJWTClaimsSet;
 import org.apache.commons.lang3.StringUtils;
+import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
+import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.UserRepository;
+import org.lct.game.ws.services.EventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +31,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.Date;
 
 /**
  * Created by sgourio on 03/06/15.
@@ -39,9 +43,12 @@ public class AuthenticationFilter extends GenericFilterBean{
 
     private UserRepository userRepository;
 
-    public AuthenticationFilter(UserRepository userRepository) {
+    private EventService eventService;
+
+    public AuthenticationFilter(UserRepository userRepository, EventService eventService) {
         super();
         this.userRepository = userRepository;
+        this.eventService = eventService;
     }
 
     public AuthenticationFilter() {
@@ -59,6 +66,7 @@ public class AuthenticationFilter extends GenericFilterBean{
                         User user = userRepository.getUserByToken(token);
                         if (user != null) {
                             RequestContextHolder.currentRequestAttributes().setAttribute("user", user, RequestAttributes.SCOPE_REQUEST);
+                            this.eventService.registrerUser(user);
                             chain.doFilter(request, response);
                         } else {
                             HttpServletResponse httpResponse = (HttpServletResponse) response;

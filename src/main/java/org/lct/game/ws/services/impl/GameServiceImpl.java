@@ -86,7 +86,7 @@ public class GameServiceImpl implements GameService{
         BoardGameTemplate boardGameTemplate = new BoardGameTemplate(BoardGameTemplateEnum.classic.getSquares());
         BoardGame boardGame = new BoardGame(boardGameTemplate);
 
-        List<Tile> deck = new ArrayList<>(deckTemplate.getTileList());
+        List<Tile> deck = new ArrayList<Tile>(deckTemplate.getTileList());
 
         int roundNumber = 0;
         Iterator<Round> roundIterator = game.getRoundList().iterator();
@@ -114,7 +114,7 @@ public class GameServiceImpl implements GameService{
             }
 
             boardGame = boardGame.dropWord(round.getDroppedWord());
-            List<Tile> resultDraw = new ArrayList<>(round.getDraw());
+            List<Tile> resultDraw = new ArrayList<Tile>(round.getDraw());
             for(Square square : round.getDroppedWord().getSquareList()){
                 resultDraw.remove(square.getDroppedTile().getTile());
             }
@@ -129,7 +129,7 @@ public class GameServiceImpl implements GameService{
 
 
     private boolean isGameFinish(List<Tile> deck, List<Tile> draw){
-        List<Tile> totalList = new ArrayList<>(deck);
+        List<Tile> totalList = new ArrayList<Tile>(deck);
         totalList.addAll(draw);
         return totalList.size() <= 1 || isOnlyConsonants(totalList) || isOnlyVowels(totalList);
     }

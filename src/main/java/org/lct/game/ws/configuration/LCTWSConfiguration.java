@@ -8,7 +8,9 @@ package org.lct.game.ws.configuration;
 
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.dao.GameRepository;
+import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
+import org.lct.game.ws.services.impl.EventServiceImpl;
 import org.lct.game.ws.services.impl.GameServiceImpl;
 import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardServiceImpl;
@@ -35,5 +37,9 @@ public class LCTWSConfiguration {
         return new GameServiceImpl(gameRepository, boardService, dictionaryService);
     }
 
+    @Bean
+    EventService eventService(){
+        return new EventServiceImpl();
+    }
 
 }
