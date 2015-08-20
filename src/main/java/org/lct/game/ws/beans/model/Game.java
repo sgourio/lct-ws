@@ -12,6 +12,7 @@ import org.springframework.data.annotation.Id;
 import java.util.List;
 
 /**
+ * A template game prepared by a user or by the computer
  * Created by sgourio on 26/05/15.
  */
 public class Game {
@@ -22,13 +23,15 @@ public class Game {
     private final String name;
     private final String lang;
     private final String authorId;
+    private final String authorName;
     private final List<Round> roundList;
 
-    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList, @JsonProperty("authorId") String authorId) {
+    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList, @JsonProperty("authorId") String authorId, @JsonProperty("authorName") String authorName) {
         this.name = name;
         this.lang = lang;
         this.roundList = roundList;
         this.authorId = authorId;
+        this.authorName = authorName;
     }
 
     public String getName() {
@@ -51,6 +54,9 @@ public class Game {
         return authorId;
     }
 
+    public String getAuthorName() {
+        return authorName;
+    }
 
     @Override
     public String toString() {

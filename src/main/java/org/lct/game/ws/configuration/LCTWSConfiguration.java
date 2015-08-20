@@ -7,13 +7,16 @@
 package org.lct.game.ws.configuration;
 
 import org.lct.dictionary.services.DictionaryService;
+import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.GameRepository;
+import org.lct.game.ws.dao.PlayGameRepository;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
+import org.lct.game.ws.services.PlayGameService;
 import org.lct.game.ws.services.impl.EventServiceImpl;
 import org.lct.game.ws.services.impl.GameServiceImpl;
+import org.lct.game.ws.services.impl.PlayGameServiceImpl;
 import org.lct.gameboard.ws.services.BoardService;
-import org.lct.gameboard.ws.services.impl.BoardServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -24,22 +27,33 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class LCTWSConfiguration {
     @Autowired
-    GameRepository gameRepository;
+    private GameRepository gameRepository;
 
     @Autowired
-    BoardService boardService;
+    private BoardService boardService;
 
     @Autowired
-    DictionaryService dictionaryService;
+    private DictionaryService dictionaryService;
+
+    @Autowired
+    private PlayGameRepository playGameRepository;
+
+    @Autowired
+    private ConnectedUserRepository connectedUserRepository;
 
     @Bean
-    GameService gameService(){
+    public GameService gameService(){
         return new GameServiceImpl(gameRepository, boardService, dictionaryService);
     }
 
     @Bean
-    EventService eventService(){
+    public EventService eventService(){
         return new EventServiceImpl();
+    }
+
+    @Bean
+    public PlayGameService playGameService(){
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository);
     }
 
 }

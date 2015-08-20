@@ -9,6 +9,7 @@ package org.lct.game.ws.filters;
 import org.lct.gameboard.ws.filters.SimpleCORSFilter;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
+import org.springframework.web.util.HtmlUtils;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -24,7 +25,7 @@ public class WSSimpleCORSFilter extends SimpleCORSFilter {
         HttpServletRequest httpRequest = (HttpServletRequest) req;
 
         String origin  = httpRequest.getHeader("origin");
-        response.setHeader("Access-Control-Allow-Origin", origin);
+        response.setHeader("Access-Control-Allow-Origin", HtmlUtils.htmlEscape(origin));
         response.setHeader("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE");
         response.setHeader("Access-Control-Max-Age", "3600");
         response.setHeader("Access-Control-Allow-Credentials", "true");

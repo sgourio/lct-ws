@@ -5,6 +5,7 @@ import org.springframework.data.annotation.Id;
 import java.util.Date;
 
 /**
+ * A user acutaly connected on plateforme
  * Created by sgourio on 11/08/15.
  */
 public class ConnectedUserBean {
@@ -18,7 +19,9 @@ public class ConnectedUserBean {
     public ConnectedUserBean(String id, String name, Date registredDate) {
         this.id = id;
         this.name = name;
-        this.registredDate = registredDate;
+        Date d = new Date();
+        d.setTime(registredDate.getTime());
+        this.registredDate = d;
     }
 
     public String getId() {
@@ -30,6 +33,8 @@ public class ConnectedUserBean {
     }
 
     public Date getRegistredDate() {
-        return registredDate;
+        Date d = new Date();
+        d.setTime(registredDate.getTime());
+        return d;
     }
 }

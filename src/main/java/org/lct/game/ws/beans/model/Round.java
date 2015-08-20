@@ -13,6 +13,7 @@ import org.lct.gameboard.ws.beans.view.DroppedWord;
 import java.util.List;
 
 /**
+ * Template round of a game
  * Created by sgourio on 26/05/15.
  */
 public class Round {

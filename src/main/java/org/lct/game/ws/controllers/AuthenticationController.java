@@ -6,51 +6,33 @@
 
 package org.lct.game.ws.controllers;
 
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeRequestUrl;
-import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
-import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
-import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
-import com.google.api.client.http.HttpTransport;
-import com.google.api.client.http.javanet.NetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
-import com.google.api.client.json.webtoken.JsonWebToken;
-import com.google.api.services.oauth2.Oauth2;
-import com.google.api.services.oauth2.model.Tokeninfo;
-import com.google.api.services.oauth2.model.Userinfoplus;
-import com.nimbusds.jose.JOSEException;
-import com.restfb.DefaultFacebookClient;
-import com.restfb.Facebook;
-import com.restfb.FacebookClient;
-import com.restfb.Version;
-import org.hibernate.validator.constraints.NotBlank;
-import org.lct.game.ws.beans.model.User;
-import org.lct.game.ws.beans.model.UserBuilder;
-import org.lct.game.ws.beans.view.Token;
-import org.lct.game.ws.dao.UserRepository;
-import org.lct.game.ws.filters.AuthUtils;
-import org.lct.game.ws.services.exceptions.IncompleteGameException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.*;
-import twitter4j.AccountSettings;
-import twitter4j.Twitter;
-import twitter4j.TwitterException;
-import twitter4j.TwitterFactory;
-import twitter4j.auth.AccessToken;
-import twitter4j.auth.RequestToken;
+    import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeTokenRequest;
+    import com.google.api.client.googleapis.auth.oauth2.GoogleCredential;
+    import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse;
+    import com.google.api.client.http.javanet.NetHttpTransport;
+    import com.google.api.client.json.jackson2.JacksonFactory;
+    import com.google.api.services.oauth2.Oauth2;
+    import com.google.api.services.oauth2.model.Tokeninfo;
+    import com.google.api.services.oauth2.model.Userinfoplus;
+    import com.nimbusds.jose.JOSEException;
+    import com.restfb.DefaultFacebookClient;
+    import com.restfb.FacebookClient;
+    import com.restfb.Version;
+    import org.hibernate.validator.constraints.NotBlank;
+    import org.lct.game.ws.beans.model.User;
+    import org.lct.game.ws.beans.model.UserBuilder;
+    import org.lct.game.ws.beans.view.Token;
+    import org.lct.game.ws.dao.UserRepository;
+    import org.lct.game.ws.filters.AuthUtils;
+    import org.lct.game.ws.services.exceptions.IncompleteGameException;
+    import org.slf4j.Logger;
+    import org.slf4j.LoggerFactory;
+    import org.springframework.beans.factory.annotation.Autowired;
+    import org.springframework.beans.factory.annotation.Value;
+    import org.springframework.http.HttpStatus;
+    import org.springframework.web.bind.annotation.*;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.swing.text.html.parser.Entity;
-import javax.validation.Valid;
-import javax.xml.ws.Response;
-import java.io.IOException;
-import java.security.Provider;
-import java.util.Map;
+    import java.io.IOException;
 
     /**
  * Created by sgourio on 03/06/15.
@@ -74,6 +56,9 @@ public class AuthenticationController {
 
     @Value("${facebook.appSecret}")
     private String facebookSecret;
+
+    @Value("${admin}")
+    private String adminList;
 
     @RequestMapping(value="/google", method= RequestMethod.POST)
     @ResponseStatus(value= HttpStatus.OK)
@@ -127,6 +112,20 @@ public class AuthenticationController {
         return token;
     }
 
+    @RequestMapping(value="/isAdmin", method= RequestMethod.GET)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public boolean isAdmin(@ModelAttribute User user){
+        if( user != null ) {
+            String[] admins = adminList.split(",");
+            for (String admin : admins) {
+                if (admin.equals(user.getEmail())) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
 
         // api key 0WBcooGi78AkLHl5Y0TK4mcST
         // secret sftq5PpOh15pIg7DNDuTeCuBUD0ZaA2xgLvRfCRYxdbc0PMqGo
@@ -173,4 +172,5 @@ public class AuthenticationController {
             return code;
         }
     }
+
 }

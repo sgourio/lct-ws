@@ -58,7 +58,7 @@ public class EventServiceImpl implements EventService {
     @Scheduled(fixedRate = 2000)
     public void disconnectUser() {
         DateTime dateTime = new DateTime();
-        Date expireLimit = dateTime.minusSeconds(8).toDate();
+        Date expireLimit = dateTime.minusMinutes(30).toDate();
         List<ConnectedUserBean> connectedUserBeanList = connectedUserRepository.findAll();
         for (ConnectedUserBean connectedUserBean : connectedUserBeanList) {
             if (connectedUserBean.getRegistredDate().before(expireLimit)) {
@@ -68,5 +68,6 @@ public class EventServiceImpl implements EventService {
             }
         }
     }
+
 
 }
