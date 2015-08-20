@@ -28,7 +28,7 @@ public class PlayGame {
     public PlayGame(@JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("startDate") Date startDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
         this.game = game;
         this.name = name;
-        this.startDate = startDate;
+        this.startDate = (Date) startDate.clone();
         this.owner = owner;
         this.playerGameList = playerGameList;
         this.playRoundList = playRoundList;
@@ -45,7 +45,7 @@ public class PlayGame {
     }
 
     public Date getStartDate() {
-        return startDate;
+        return (Date) startDate.clone();
     }
 
     public PlayerGame getOwner() {

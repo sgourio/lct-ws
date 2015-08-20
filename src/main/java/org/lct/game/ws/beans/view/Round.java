@@ -23,8 +23,8 @@ public class Round {
         this.roundNumber = roundNumber;
         this.boardGame = boardGame;
         this.draw = draw;
-        this.startDate = startDate;
-        this.endDate = endDate;
+        this.startDate = (Date) startDate.clone();
+        this.endDate = (Date) endDate.clone();
         this.lastDroppedWord = lastDroppedWord;
     }
 
@@ -41,11 +41,11 @@ public class Round {
     }
 
     public Date getStartDate() {
-        return startDate;
+        return (Date) startDate.clone();
     }
 
     public Date getEndDate() {
-        return endDate;
+        return (Date) endDate.clone();
     }
 
     public DroppedWord getLastDroppedWord() {
