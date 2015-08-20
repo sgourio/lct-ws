@@ -23,8 +23,8 @@ public class PlayGameMetaBean {
         this.actualRoundNumber = actualRoundNumber;
         this.nbPlayers = nbPlayers;
         this.status = status;
-        this.startDate = (Date) startDate.clone();
-        this.endDate = (Date) endDate.clone();
+        this.startDate = startDate != null ? (Date) startDate.clone() : null;
+        this.endDate = endDate != null ? (Date) endDate.clone() : null;
     }
 
     public String getPlayGameId() {
@@ -48,11 +48,11 @@ public class PlayGameMetaBean {
     }
 
     public Date getStartDate() {
-        return (Date) startDate.clone();
+        return startDate != null ? (Date) startDate.clone() : null;
     }
 
     public Date getEndDate() {
-        return (Date) endDate.clone();
+        return endDate != null ? (Date) endDate.clone() : null;
     }
 
     public String getOwner() {
