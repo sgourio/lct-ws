@@ -13,12 +13,14 @@
 package org.lct.game.ws;
 
 import org.lct.game.ws.dao.UserRepository;
+import org.lct.game.ws.filters.AdminFilter;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.filters.WSSimpleCORSFilter;
 import org.lct.game.ws.services.EventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.embedded.FilterRegistrationBean;
@@ -56,6 +58,9 @@ public class Application {
     @Autowired
     private EventService eventService;
 
+    @Value("${admin}")
+    private String adminList;
+
     @Bean
     public SchedulerFactoryBean schedulerFactoryBean(){
         return new SchedulerFactoryBean();
@@ -77,6 +82,16 @@ public class Application {
         registrationBean.setFilter(authenticationFilter);
         registrationBean.addUrlPatterns("/board/*", "/game/*","/play/*","/auth/isAdmin");
         registrationBean.setOrder(0);
+        return registrationBean;
+    }
+
+    @Bean
+    public FilterRegistrationBean adminFilterBean() {
+        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        AdminFilter adminFilter = new AdminFilter(userRepository, adminList);
+        registrationBean.setFilter(adminFilter);
+        registrationBean.addUrlPatterns("/admin/*");
+        registrationBean.setOrder(1);
         return registrationBean;
     }
 

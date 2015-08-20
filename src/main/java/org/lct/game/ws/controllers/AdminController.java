@@ -11,7 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * Controler for administration action.
+ * Controller for administration action.
  * Restrict to admin profiles ( defined in application-config.xml )
  * Created by sgourio on 17/08/15.
  */
