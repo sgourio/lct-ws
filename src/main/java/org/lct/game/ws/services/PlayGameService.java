@@ -51,6 +51,21 @@ public interface PlayGameService {
     public List<PlayGameMetaBean> getActualPlayGame();
 
     /**
+     * Get playGameMetaBean from playGame with id
+     * @param playGameId
+     * @return
+     */
+    public PlayGameMetaBean getPlayGameMetaBean(String playGameId);
+
+
+    /**
+     * User join the game
+     * @param playGameId
+     * @param user
+     */
+    public void joinGame(String playGameId, User user);
+
+    /**
      * Get the list of connected user in the application
      * @return connectedUserBean list
      */

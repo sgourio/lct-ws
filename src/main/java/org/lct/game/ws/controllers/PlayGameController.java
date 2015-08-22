@@ -64,6 +64,30 @@ public class PlayGameController {
     }
 
     /**
+     * Get PlayGameMetaData for game with id
+     * @return the PlayGameMetaData
+     */
+    @RequestMapping(value="/game/{id}", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public PlayGameMetaBean getPlayGameMetaBean(@PathVariable("id") String id, @ModelAttribute User user){
+        return playGameService.getPlayGameMetaBean(id);
+    }
+
+    /**
+     * Get PlayGameMetaData for game with id
+     * @return the PlayGameMetaData
+     */
+    @RequestMapping(value="/game/{id}", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String joinGame(@PathVariable("id") String id, @ModelAttribute User user){
+        // TODO check autorisation
+        playGameService
+        return "joined";
+    }
+
+    /**
      * Return the list of Connected User in the application
      * @return ConnectedUser list
      */

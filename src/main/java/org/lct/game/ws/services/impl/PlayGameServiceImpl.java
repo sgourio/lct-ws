@@ -130,6 +130,18 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
+    public PlayGameMetaBean getPlayGameMetaBean(String playGameId){
+        return playGameToPlayGameMetaBean(playGameRepository.findOne(playGameId));
+    }
+
+    @Override
+    public void joinGame(String playGameId, User user){
+        PlayGame playGame = playGameRepository.findOne(playGameId);
+        playGame.getPlayerGameList().add(new PlayerGame(user.getId(), user.getName(), 0));
+        playGameRepository.save(playGame);
+    }
+
+    @Override
     public List<ConnectedUserBean> getConnectedUserList() {
         return connectedUserRepository.findAll();
     }
