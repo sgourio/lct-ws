@@ -7,6 +7,7 @@ import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.PreparedGame;
+import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
 import org.slf4j.Logger;
@@ -35,6 +36,9 @@ public class PlayGameController {
 
     @Autowired
     private PlayGameService playGameService;
+
+    @Autowired
+    private EventService eventService;
 
     /**
      * Open a game for playing ( the game is not started yet, but it is available to enter in )
@@ -78,12 +82,15 @@ public class PlayGameController {
      * Get PlayGameMetaData for game with id
      * @return the PlayGameMetaData
      */
-    @RequestMapping(value="/game/{id}", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value="/game/{id}/join", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public String joinGame(@PathVariable("id") String id, @ModelAttribute User user){
         // TODO check autorisation
-        playGameService
+        PlayGame playGame = playGameService.joinGame(id, user);
+        if( playGame != null ) {
+            eventService.joinGame(playGame);
+        }
         return "joined";
     }
 
@@ -96,6 +103,17 @@ public class PlayGameController {
     @ResponseBody
     public List<ConnectedUserBean> getConnectedUserList(){
         return playGameService.getConnectedUserList();
+    }
+
+    /**
+     * Return the list of a game player
+     * @return Player list
+     */
+    @RequestMapping(value="/game/{id}/players", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public List<PlayerGame> getPlayers(@PathVariable("id") String playGameId, @ModelAttribute User user){
+        return playGameService.getPlayerGameList(playGameId);
     }
 
 }

@@ -19,4 +19,5 @@ public interface GameRepository extends MongoRepository<Game, String> {
 
     public List<Game> findByAuthorId(String authorId);
     public List<Game> findByAuthorId(String authorId, Pageable pageable);
+    public Long countByAuthorId(String authorId);
 }

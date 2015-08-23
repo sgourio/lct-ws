@@ -135,10 +135,22 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
-    public void joinGame(String playGameId, User user){
+    public PlayGame joinGame(String playGameId, User user){
+
         PlayGame playGame = playGameRepository.findOne(playGameId);
-        playGame.getPlayerGameList().add(new PlayerGame(user.getId(), user.getName(), 0));
-        playGameRepository.save(playGame);
+        PlayerGame playerGame = new PlayerGame(user.getId(), user.getName(), 0);
+        if( playGame != null && !playGame.getPlayerGameList().contains(playerGame) ) {
+            logger.info(user + " join " + playGame);
+            playGame.getPlayerGameList().add(playerGame);
+            playGame = playGameRepository.save(playGame);
+        }
+        return playGame;
+    }
+
+    @Override
+    public List<PlayerGame> getPlayerGameList(String playGameId){
+        PlayGame playGame = playGameRepository.findOne(playGameId);
+        return playGame.getPlayerGameList();
     }
 
     @Override

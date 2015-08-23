@@ -30,4 +30,21 @@ public class PlayerGame {
     public int getScore() {
         return score;
     }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        PlayerGame that = (PlayerGame) o;
+
+        if (userId != null ? !userId.equals(that.userId) : that.userId != null) return false;
+
+        return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return userId != null ? userId.hashCode() : 0;
+    }
 }

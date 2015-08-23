@@ -79,7 +79,7 @@ public class GameServiceImpl implements GameService{
 
     @Override
     public List<Game> getByAuthorId(String authorId, int max) {
-        int nbPage = (int) (this.gameRepository.count() / max) - 1;
+        int nbPage = (int) (this.gameRepository.countByAuthorId("auto") / max) - 1;
         if( nbPage < 0 ) nbPage = 0;
         int page = (int) Math.round( Math.random() * nbPage);
         return this.gameRepository.findByAuthorId(authorId, new PageRequest(page, max));

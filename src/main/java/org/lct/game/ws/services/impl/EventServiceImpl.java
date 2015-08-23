@@ -3,6 +3,7 @@ package org.lct.game.ws.services.impl;
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
+import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.services.EventService;
 import org.slf4j.Logger;
@@ -29,6 +30,7 @@ public class EventServiceImpl implements EventService {
     private SimpMessagingTemplate messagingTemplate;
 
     private static String gamerList = "/topic/gamerList";
+    private static String playerList = "/topic/players/"; // + playGameId
 
     private Set<User> userToConnect;
 
@@ -67,6 +69,10 @@ public class EventServiceImpl implements EventService {
                 messagingTemplate.convertAndSend(gamerList, connectedUserRepository.findAll());
             }
         }
+    }
+
+    public void joinGame(PlayGame playGame){
+        messagingTemplate.convertAndSend(playerList + playGame.getId(), playGame.getPlayerGameList());
     }
 
 

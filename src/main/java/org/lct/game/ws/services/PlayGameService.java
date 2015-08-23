@@ -5,6 +5,7 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -63,11 +64,18 @@ public interface PlayGameService {
      * @param playGameId
      * @param user
      */
-    public void joinGame(String playGameId, User user);
+    public PlayGame joinGame(String playGameId, User user);
 
     /**
      * Get the list of connected user in the application
      * @return connectedUserBean list
      */
     public List<ConnectedUserBean> getConnectedUserList();
+
+    /**
+     * Get list of game players
+     * @param playGameId
+     * @return
+     */
+    public List<PlayerGame> getPlayerGameList(String playGameId);
 }
