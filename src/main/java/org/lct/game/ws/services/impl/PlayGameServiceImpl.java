@@ -7,10 +7,7 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.User;
-import org.lct.game.ws.beans.model.gaming.PlayGame;
-import org.lct.game.ws.beans.model.gaming.PlayRound;
-import org.lct.game.ws.beans.model.gaming.PlayerGame;
-import org.lct.game.ws.beans.model.gaming.PlayerRound;
+import org.lct.game.ws.beans.model.gaming.*;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.PlayGameRepository;
@@ -52,10 +49,18 @@ public class PlayGameServiceImpl implements PlayGameService {
         for( Round round : game.getRoundList()){
             playRoundList.add(new PlayRound(new ArrayList<PlayerRound>()));
         }
-        PlayGame playGame = new PlayGame(game, name, startDate, owner, new ArrayList<PlayerGame>(), playRoundList, PlayGameStatus.opened.getId(), roundTime);
+        PlayGame playGame = new PlayGameBuilder().setGame(game).setName(name).setStartDate(startDate).setOwner(owner).setPlayerGameList(new ArrayList<PlayerGame>()).setPlayRoundList(playRoundList).setStatus(PlayGameStatus.opened.getId()).setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
         logger.info("Game '"+name+"'opened by " + user);
         return playGame;
+    }
+
+    public PlayGame startGame(PlayGame playGame, Date startDate, User user){
+        PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
+        playGameBuilder.setStatus(PlayGameStatus.running.getId());
+        playGameBuilder.setStartDate(startDate);
+        PlayGame startedGame = playGameBuilder.createPlayGame();
+        return playGameRepository.save(startedGame);
     }
 
     public List<PlayGameMetaBean> getActualPlayGame(){
@@ -86,6 +91,8 @@ public class PlayGameServiceImpl implements PlayGameService {
         return new PlayGameMetaBean(playGame.getId(),
                 playGame.getName(),
                 playGame.getOwner().getName(),
+                playGame.getPlayRoundList().size(),
+                playGame.getRoundTime(),
                 actualRoundNumber,
                 playGame.getPlayerGameList().size(),
                 playGame.getStatus(),
@@ -156,5 +163,10 @@ public class PlayGameServiceImpl implements PlayGameService {
     @Override
     public List<ConnectedUserBean> getConnectedUserList() {
         return connectedUserRepository.findAll();
+    }
+
+    @Override
+    public PlayGame getPlayGame(String playGameId) {
+        return playGameRepository.findOne(playGameId);
     }
 }

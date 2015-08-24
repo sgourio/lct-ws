@@ -4,9 +4,11 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.model.gaming.PlayGameBuilder;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.PreparedGame;
+import org.lct.game.ws.beans.view.ToStartGame;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
@@ -53,6 +55,21 @@ public class PlayGameController {
         Game game = gameService.getById(preparedGame.getGameId());
         PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), null, user);
         return playGame.getId();
+    }
+
+    /**
+     * Start a game at a time for playing
+     * @param toStartGame game attributes
+     * @param user owner of the PlayGame
+     * @return the id of the PlayGame started
+     */
+    @RequestMapping(value="/startGame", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String startGame(@RequestBody ToStartGame toStartGame, @ModelAttribute User user){
+        PlayGame playGame = playGameService.getPlayGame(toStartGame.getPlayGameId());
+        PlayGame result = playGameService.startGame(playGame, toStartGame.getStartDate(), user);
+        return result.getId();
     }
 
 

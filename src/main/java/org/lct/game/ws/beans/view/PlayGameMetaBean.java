@@ -10,16 +10,20 @@ public class PlayGameMetaBean {
     private final String playGameId;
     private final String name;
     private final String owner;
+    private final int numberOfRound;
+    private final int timeByRound;
     private final int actualRoundNumber;
     private final int nbPlayers;
     private final String status;
     private final Date startDate;
     private final Date endDate;
 
-    public PlayGameMetaBean(String playGameId, String name, String owner, int actualRoundNumber, int nbPlayers, String status, Date startDate, Date endDate) {
+    public PlayGameMetaBean(String playGameId, String name, String owner, int numberOfRound, int timeByRound, int actualRoundNumber, int nbPlayers, String status, Date startDate, Date endDate) {
         this.playGameId = playGameId;
         this.name = name;
         this.owner = owner;
+        this.numberOfRound = numberOfRound;
+        this.timeByRound = timeByRound;
         this.actualRoundNumber = actualRoundNumber;
         this.nbPlayers = nbPlayers;
         this.status = status;
@@ -57,5 +61,13 @@ public class PlayGameMetaBean {
 
     public String getOwner() {
         return owner;
+    }
+
+    public int getNumberOfRound() {
+        return numberOfRound;
+    }
+
+    public int getTimeByRound() {
+        return timeByRound;
     }
 }

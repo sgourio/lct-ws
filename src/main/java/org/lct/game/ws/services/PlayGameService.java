@@ -30,6 +30,15 @@ public interface PlayGameService {
     public PlayGame openGame(Game game, String name, int roundTime, Date startDate, User user);
 
     /**
+     * Start a game
+     * @param playGame
+     * @param startDate
+     * @param user
+     * @return PlayGame with status running
+     */
+    public PlayGame startGame(PlayGame playGame, Date startDate, User user);
+
+    /**
      * Get a round of playGame at time
      * @param playGame PlayGame
      * @param atTime Get a round at this time
@@ -78,4 +87,11 @@ public interface PlayGameService {
      * @return
      */
     public List<PlayerGame> getPlayerGameList(String playGameId);
+
+    /**
+     * Get PlayGame by id
+     * @param playGameId
+     * @return
+     */
+    public PlayGame getPlayGame(String playGameId);
 }

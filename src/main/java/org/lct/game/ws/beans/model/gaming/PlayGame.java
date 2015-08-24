@@ -25,7 +25,8 @@ public class PlayGame {
     private final int roundTime; // seconds
 
 
-    public PlayGame(@JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("startDate") Date startDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("startDate") Date startDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+        this.id = id;
         this.game = game;
         this.name = name;
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
@@ -76,4 +77,6 @@ public class PlayGame {
     public String toString() {
         return this.name;
     }
+
+
 }
