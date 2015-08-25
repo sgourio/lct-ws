@@ -2,6 +2,8 @@ package org.lct.game.ws.services.impl;
 
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.lct.game.ws.beans.PlayGameStatus;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
@@ -17,10 +19,14 @@ import org.lct.gameboard.ws.beans.view.BoardGame;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
 import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
+import org.quartz.*;
+import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import java.text.DateFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -34,12 +40,13 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final PlayGameRepository playGameRepository;
     private final BoardService boardService;
     private final ConnectedUserRepository connectedUserRepository;
+    private final SchedulerFactoryBean schedulerFactoryBean;
 
-
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
+        this.schedulerFactoryBean = schedulerFactoryBean;
     }
 
     @Override
@@ -56,10 +63,31 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     public PlayGame startGame(PlayGame playGame, Date startDate, User user){
+        DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+        logger.info("Start " + playGame +" at " + fmt.print(startDate.getTime()));
         PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
         playGameBuilder.setStatus(PlayGameStatus.running.getId());
         playGameBuilder.setStartDate(startDate);
         PlayGame startedGame = playGameBuilder.createPlayGame();
+
+
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("playGame", startedGame);
+        jobDataMap.put("playGameService", this);
+        JobDetail jobDetail = JobBuilder.newJob(GameJob.class).setJobData(jobDataMap).build();
+        Trigger trigger1 = TriggerBuilder.newTrigger().startAt(startDate).withSchedule(SimpleScheduleBuilder.repeatSecondlyForTotalCount(playGame.getPlayRoundList().size(), playGame.getRoundTime())).build();
+
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        try {
+            if( !scheduler.isStarted() ){
+                scheduler.start();
+            }
+            scheduler.scheduleJob(jobDetail, trigger1);
+        } catch (SchedulerException e) {
+            logger.error("",e );
+        }
+
+
         return playGameRepository.save(startedGame);
     }
 
@@ -111,7 +139,8 @@ public class PlayGameServiceImpl implements PlayGameService {
         if( duration.getStandardHours() > 3){
             return playGame.getPlayRoundList().size();
         }
-        return ((int) duration.getStandardSeconds() / playGame.getRoundTime()) + 1;
+        int round = ((int) duration.getStandardSeconds() / playGame.getRoundTime()) + 1;
+        return Math.min(round, playGame.getPlayRoundList().size());
 
     }
 

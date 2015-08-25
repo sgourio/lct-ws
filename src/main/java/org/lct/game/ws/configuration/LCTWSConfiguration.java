@@ -20,6 +20,7 @@ import org.lct.gameboard.ws.services.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 /**
  * Created by sgourio on 25/05/15.
@@ -41,6 +42,9 @@ public class LCTWSConfiguration {
     @Autowired
     private ConnectedUserRepository connectedUserRepository;
 
+    @Autowired
+    private SchedulerFactoryBean schedulerFactoryBean;
+
     @Bean
     public GameService gameService(){
         return new GameServiceImpl(gameRepository, boardService, dictionaryService);
@@ -53,7 +57,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean);
     }
 
 }

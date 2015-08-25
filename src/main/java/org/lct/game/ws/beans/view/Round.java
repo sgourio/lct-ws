@@ -51,4 +51,9 @@ public class Round {
     public DroppedWord getLastDroppedWord() {
         return lastDroppedWord;
     }
+
+    @Override
+    public String toString() {
+        return String.valueOf(roundNumber);
+    }
 }

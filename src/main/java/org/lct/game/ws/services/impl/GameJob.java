@@ -1,31 +1,34 @@
 package org.lct.game.ws.services.impl;
 
+import org.joda.time.DateTime;
+import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.services.PlayGameService;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
 
 /**
  * Created by sgourio on 14/08/15.
  */
 public class GameJob extends QuartzJobBean {
+    private static final Logger logger = LoggerFactory.getLogger(GameJob.class);
 
-    private int timeout;
-    private String test;
+    private PlayGame playGame;
+    private PlayGameService playGameService;
 
-    /**
-     * Setter called after the ExampleJob is instantiated
-     * with the value from the JobDetailFactoryBean (5)
-     */
-    public void setTimeout(int timeout) {
-        this.timeout = timeout;
+
+    public void setPlayGame(PlayGame playGame) {
+        this.playGame = playGame;
     }
 
-    public void setTest(String test) {
-        this.test = test;
+    public void setPlayGameService(PlayGameService playGameService) {
+        this.playGameService = playGameService;
     }
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        System.out.println("test value:"  + test);
+        logger.info(playGame + " round " + playGameService.getRound(playGame, new DateTime()));
     }
 }
