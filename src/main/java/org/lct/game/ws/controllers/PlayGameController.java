@@ -1,5 +1,6 @@
 package org.lct.game.ws.controllers;
 
+import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
@@ -8,6 +9,7 @@ import org.lct.game.ws.beans.model.gaming.PlayGameBuilder;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.PreparedGame;
+import org.lct.game.ws.beans.view.Round;
 import org.lct.game.ws.beans.view.ToStartGame;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
@@ -131,6 +133,14 @@ public class PlayGameController {
     @ResponseBody
     public List<PlayerGame> getPlayers(@PathVariable("id") String playGameId, @ModelAttribute User user){
         return playGameService.getPlayerGameList(playGameId);
+    }
+
+    @RequestMapping(value="/game/{id}/round/current", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public Round getCurrentRound(@PathVariable("id") String playGameId, @ModelAttribute User user){
+        PlayGame playGame = playGameService.getPlayGame(playGameId);
+        return playGameService.getRound(playGame, new DateTime());
     }
 
 }
