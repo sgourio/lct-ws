@@ -29,6 +29,11 @@ public class GameJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        logger.info(playGame + " round " + playGameService.getRound(playGame, new DateTime()));
+        logger.info(playGame + " round " + playGameService.getRound(playGame, DateTime.now()));
+        // test if finished
+        if( playGameService.isEnded(playGame, DateTime.now())){
+            playGameService.endGame(playGame);
+        }
+
     }
 }

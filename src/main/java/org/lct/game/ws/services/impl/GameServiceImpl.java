@@ -186,9 +186,10 @@ public class GameServiceImpl implements GameService{
         while( !isGameFinish(deck, currentDraw) ){
             turnNumber++;
             currentDraw = draw(turnNumber, deck, currentDraw);
-            Set<DroppedWord> droppedWordList = boardService.findBestWord(dictionaryService, Dictionary.french, boardGame, currentDraw);
+
+            Set<DroppedWord> droppedWordList = boardService.findBestWord(dictionaryService, Dictionary.french, boardGame, new ArrayList<Tile>(currentDraw));
             if( droppedWordList.size() > 0) {
-                Round round = new Round(currentDraw, droppedWordList.iterator().next());
+                Round round = new Round(new ArrayList<Tile>(currentDraw), droppedWordList.iterator().next());
                 roundList.add(round);
                 boardGame = boardGame.dropWord(round.getDroppedWord());
                 for(Square square : round.getDroppedWord().getSquareList()){

@@ -70,7 +70,7 @@ public class PlayGameController {
     @ResponseBody
     public String startGame(@RequestBody ToStartGame toStartGame, @ModelAttribute User user){
         PlayGame playGame = playGameService.getPlayGame(toStartGame.getPlayGameId());
-        PlayGame result = playGameService.startGame(playGame, toStartGame.getStartDate(), user);
+        PlayGame result = playGameService.startGame(playGame, toStartGame.getStartDate());
         return result.getId();
     }
 

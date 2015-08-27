@@ -2,6 +2,7 @@ package org.lct.game.ws.beans.view;
 
 import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
+import org.lct.gameboard.ws.beans.view.DroppedTile;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
 
 import java.util.Date;
@@ -14,12 +15,12 @@ import java.util.List;
 public class Round {
     private final int roundNumber;
     private final BoardGame boardGame;
-    private final List<Tile> draw;
+    private final List<DroppedTile> draw;
     private final Date startDate;
     private final Date endDate;
     private final DroppedWord lastDroppedWord;
 
-    public Round(int roundNumber, BoardGame boardGame, List<Tile> draw, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
+    public Round(int roundNumber, BoardGame boardGame, List<DroppedTile> draw, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
         this.roundNumber = roundNumber;
         this.boardGame = boardGame;
         this.draw = draw;
@@ -36,7 +37,7 @@ public class Round {
         return boardGame;
     }
 
-    public List<Tile> getDraw() {
+    public List<DroppedTile> getDraw() {
         return draw;
     }
 

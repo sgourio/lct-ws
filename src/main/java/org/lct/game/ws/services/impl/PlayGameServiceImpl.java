@@ -15,7 +15,9 @@ import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.PlayGameRepository;
 import org.lct.game.ws.services.PlayGameService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
+import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
+import org.lct.gameboard.ws.beans.view.DroppedTile;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
 import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
@@ -56,13 +58,21 @@ public class PlayGameServiceImpl implements PlayGameService {
         for( Round round : game.getRoundList()){
             playRoundList.add(new PlayRound(new ArrayList<PlayerRound>()));
         }
-        PlayGame playGame = new PlayGameBuilder().setGame(game).setName(name).setStartDate(startDate).setOwner(owner).setPlayerGameList(new ArrayList<PlayerGame>()).setPlayRoundList(playRoundList).setStatus(PlayGameStatus.opened.getId()).setRoundTime(roundTime).createPlayGame();
+        PlayGame playGame = new PlayGameBuilder()
+                .setGame(game)
+                .setName(name)
+                .setStartDate(startDate)
+                .setOwner(owner)
+                .setPlayerGameList(new ArrayList<PlayerGame>())
+                .setPlayRoundList(playRoundList)
+                .setStatus(PlayGameStatus.opened.getId())
+                .setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
         logger.info("Game '"+name+"'opened by " + user);
         return playGame;
     }
 
-    public PlayGame startGame(PlayGame playGame, Date startDate, User user){
+    public PlayGame startGame(final PlayGame playGame, final Date startDate){
         DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
         logger.info("Start " + playGame +" at " + fmt.print(startDate.getTime()));
         PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
@@ -70,25 +80,61 @@ public class PlayGameServiceImpl implements PlayGameService {
         playGameBuilder.setStartDate(startDate);
         PlayGame startedGame = playGameBuilder.createPlayGame();
 
+        startedGame = playGameRepository.save(startedGame);
+        scheduleGame(startedGame);
+        return startedGame;
+    }
 
+    public PlayGame endGame(final PlayGame playGame){
+        logger.info("Terminating game " + playGame);
+        PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
+        playGameBuilder.setStatus(PlayGameStatus.ended.getId());
+        PlayGame endedGame = playGameBuilder.createPlayGame();
+        return playGameRepository.save(endedGame);
+    }
+
+    public void scheduleGame(final PlayGame playGame){
+        if( playGame.getStartDate() != null){
+            int currentRoundNumber = getRoundNumber(playGame, DateTime.now());
+            JobDetail jobDetail = buildJobDetail(playGame);
+            ScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.repeatSecondlyForTotalCount(playGame.getPlayRoundList().size() - currentRoundNumber + 1, playGame.getRoundTime());
+            TriggerBuilder triggerBuilder = TriggerBuilder.newTrigger();
+            if( playGame.getStartDate().after(new Date())){
+                triggerBuilder.startAt(playGame.getStartDate());
+            }else{
+                triggerBuilder.startNow();
+            }
+            Trigger trigger = triggerBuilder.withSchedule(scheduleBuilder).build();
+            Scheduler scheduler = schedulerFactoryBean.getScheduler();
+            try {
+                if (!scheduler.isStarted()) {
+                    scheduler.start();
+                }
+                scheduler.scheduleJob(jobDetail, trigger);
+            } catch (SchedulerException e) {
+                logger.error("", e);
+            }
+        }
+    }
+
+    private JobDetail buildJobDetail(PlayGame playGame){
         JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("playGame", startedGame);
+        jobDataMap.put("playGame", playGame);
         jobDataMap.put("playGameService", this);
         JobDetail jobDetail = JobBuilder.newJob(GameJob.class).setJobData(jobDataMap).build();
-        Trigger trigger1 = TriggerBuilder.newTrigger().startAt(startDate).withSchedule(SimpleScheduleBuilder.repeatSecondlyForTotalCount(playGame.getPlayRoundList().size(), playGame.getRoundTime())).build();
+        return jobDetail;
+    }
 
-        Scheduler scheduler = schedulerFactoryBean.getScheduler();
-        try {
-            if( !scheduler.isStarted() ){
-                scheduler.start();
-            }
-            scheduler.scheduleJob(jobDetail, trigger1);
-        } catch (SchedulerException e) {
-            logger.error("",e );
+    @Override
+    public void scheduleAllRunningGames() {
+        List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.running.getId());
+        for( PlayGame playGame : playGameList ){
+            scheduleGame(playGame);
         }
+    }
 
-
-        return playGameRepository.save(startedGame);
+    public boolean isEnded(PlayGame playGame , DateTime atTime){
+        return atTime.isAfter(new DateTime(playGame.getStartDate()).plusSeconds(playGame.getRoundTime() * playGame.getPlayRoundList().size()));
     }
 
     public List<PlayGameMetaBean> getActualPlayGame(){
@@ -134,14 +180,13 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     private int getRoundNumber(PlayGame playGame, DateTime atTime){
-        DateTime dateTime = new DateTime(playGame.getStartDate());
-        Duration duration = new Duration(dateTime, atTime);
-        if( duration.getStandardHours() > 3){
-            return playGame.getPlayRoundList().size();
+        DateTime startedDateTime = new DateTime(playGame.getStartDate());
+        if( startedDateTime.isAfter(atTime)){
+            return 0;
         }
+        Duration duration = new Duration(startedDateTime, atTime);
         int round = ((int) duration.getStandardSeconds() / playGame.getRoundTime()) + 1;
         return Math.min(round, playGame.getPlayRoundList().size());
-
     }
 
     @Override
@@ -162,7 +207,11 @@ public class PlayGameServiceImpl implements PlayGameService {
         if( roundNumber > 1 ){
             lastDroppedWord = playGame.getGame().getRoundList().get(roundNumber-2).getDroppedWord();
         }
-        return new org.lct.game.ws.beans.view.Round(roundNumber, boardGame, round.getDraw(), roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
+        List<DroppedTile> draw = new ArrayList<DroppedTile>();
+        for( Tile tile : round.getDraw()){
+            draw.add(new DroppedTile(tile, tile.getValue()));
+        }
+        return new org.lct.game.ws.beans.view.Round(roundNumber, boardGame, draw, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
     }
 
     @Override

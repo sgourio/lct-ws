@@ -17,6 +17,7 @@ import org.lct.game.ws.filters.AdminFilter;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.filters.WSSimpleCORSFilter;
 import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.services.PlayGameService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ import org.springframework.context.annotation.FilterType;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
+import javax.annotation.PostConstruct;
 import java.util.Arrays;
 
 @SpringBootApplication
@@ -57,6 +59,15 @@ public class Application {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private PlayGameService playGameService;
+
+    @PostConstruct
+    private void initRunningGames(){
+        logger.info("schedules running games");
+        playGameService.scheduleAllRunningGames();
+    }
 
     @Value("${admin}")
     private String adminList;

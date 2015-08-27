@@ -33,10 +33,16 @@ public interface PlayGameService {
      * Start a game
      * @param playGame
      * @param startDate
-     * @param user
      * @return PlayGame with status running
      */
-    public PlayGame startGame(PlayGame playGame, Date startDate, User user);
+    public PlayGame startGame(PlayGame playGame, Date startDate);
+
+    /**
+     * End a game
+     * @param playGame
+     * @return
+     */
+    public PlayGame endGame(final PlayGame playGame);
 
     /**
      * Get a round of playGame at time
@@ -94,4 +100,24 @@ public interface PlayGameService {
      * @return
      */
     public PlayGame getPlayGame(String playGameId);
+
+
+    /**
+     * Enter the game in the scheduler to change its state periodically and inform players
+     * @param playGame
+     */
+    public void scheduleGame(final PlayGame playGame);
+
+    /**
+     * Schedule all running games at application start up
+     */
+    public void scheduleAllRunningGames();
+
+    /**
+     * is game ended at this time
+     * @param playGame
+     * @param atTime
+     * @return
+     */
+    public boolean isEnded(PlayGame playGame , DateTime atTime);
 }
