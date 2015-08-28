@@ -16,6 +16,7 @@ public class PlayGameBuilder {
     private String id;
     private Game game;
     private String name;
+    private Date creationDate;
     private Date startDate;
     private PlayerGame owner;
     private List<PlayerGame> playerGameList;
@@ -30,6 +31,7 @@ public class PlayGameBuilder {
         this.id = playGame.getId();
         this.game = playGame.getGame();
         this.name = playGame.getName();
+        this.creationDate = playGame.getCreationDate() != null ? new Date(playGame.getCreationDate().getTime()) : null;
         this.startDate = playGame.getStartDate() != null ? new Date(playGame.getStartDate().getTime()) : null;
         this.owner = playGame.getOwner();
         this.playerGameList = new ArrayList<>(playGame.getPlayerGameList());
@@ -78,8 +80,13 @@ public class PlayGameBuilder {
         return this;
     }
 
+    public PlayGameBuilder setCreationDate(Date creationDate){
+        this.creationDate = creationDate;
+        return this;
+    }
+
     public PlayGame createPlayGame() {
-        return new PlayGame(id, game, name, startDate, owner, playerGameList, playRoundList, status, roundTime);
+        return new PlayGame(id, game, name, creationDate, startDate, owner, playerGameList, playRoundList, status, roundTime);
     }
 
 

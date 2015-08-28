@@ -30,9 +30,12 @@ public class EventServiceImpl implements EventService {
     private SimpMessagingTemplate messagingTemplate;
 
     private static String gamerList = "/topic/gamerList";
-    private static String playerList = "/topic/players/"; // + playGameId
+    private static String playerList = "/topic/game/:gameId/players";
+    private static String gameRound = "/topic/game/:gameId/round";
+    private static String timer = "/topic/game/:gameId/timer";
 
     private Set<User> userToConnect;
+    private Set<PlayGame> playGameSet;
 
     public EventServiceImpl() {
         userToConnect = new HashSet<User>();
@@ -72,7 +75,15 @@ public class EventServiceImpl implements EventService {
     }
 
     public void joinGame(PlayGame playGame){
-        messagingTemplate.convertAndSend(playerList + playGame.getId(), playGame.getPlayerGameList());
+        messagingTemplate.convertAndSend(playerList.replace(":gameId" ,playGame.getId()), playGame.getPlayerGameList());
+    }
+
+    public void publishRound(PlayGame playGame, org.lct.game.ws.beans.view.Round round){
+        messagingTemplate.convertAndSend(gameRound.replace(":gameId" ,playGame.getId()), round);
+    }
+
+    public void publishTimer(PlayGame playGame, long countDown){
+        messagingTemplate.convertAndSend(timer.replace(":gameId" ,playGame.getId()), countDown);
     }
 
 

@@ -17,6 +17,7 @@ public class PlayGame {
     private String id;
     private final Game game;
     private final String name;
+    private final Date creationDate;
     private final Date startDate;
     private final PlayerGame owner;
     private final List<PlayerGame> playerGameList;
@@ -25,10 +26,11 @@ public class PlayGame {
     private final int roundTime; // seconds
 
 
-    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("startDate") Date startDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
         this.id = id;
         this.game = game;
         this.name = name;
+        this.creationDate = creationDate != null ? (Date) creationDate.clone() : null;
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
         this.owner = owner;
         this.playerGameList = playerGameList;
@@ -47,6 +49,10 @@ public class PlayGame {
 
     public Date getStartDate() {
         return startDate != null ? (Date) startDate.clone() : null;
+    }
+
+    public Date getCreationDate() {
+        return creationDate != null ? (Date) creationDate.clone() : null;
     }
 
     public PlayerGame getOwner() {

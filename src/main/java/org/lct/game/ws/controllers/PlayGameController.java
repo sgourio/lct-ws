@@ -70,7 +70,7 @@ public class PlayGameController {
     @ResponseBody
     public String startGame(@RequestBody ToStartGame toStartGame, @ModelAttribute User user){
         PlayGame playGame = playGameService.getPlayGame(toStartGame.getPlayGameId());
-        PlayGame result = playGameService.startGame(playGame, toStartGame.getStartDate());
+        PlayGame result = playGameService.setUpGame(playGame, toStartGame.getStartDate());
         return result.getId();
     }
 
@@ -98,7 +98,7 @@ public class PlayGameController {
     }
 
     /**
-     * Get PlayGameMetaData for game with id
+     * Join game
      * @return the PlayGameMetaData
      */
     @RequestMapping(value="/game/{id}/join", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
@@ -111,6 +111,22 @@ public class PlayGameController {
             eventService.joinGame(playGame);
         }
         return "joined";
+    }
+
+    /**
+     * qui game
+     * @return the PlayGameMetaData
+     */
+    @RequestMapping(value="/game/{id}/quit", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String quitGame(@PathVariable("id") String id, @ModelAttribute User user){
+        // TODO check autorisation
+        PlayGame playGame = playGameService.quitGame(id, user);
+        if( playGame != null ) {
+            eventService.joinGame(playGame);
+        }
+        return "quited";
     }
 
     /**

@@ -29,13 +29,21 @@ public interface PlayGameService {
      */
     public PlayGame openGame(Game game, String name, int roundTime, Date startDate, User user);
 
+
+    /**
+     * Set up a playGame by setting its start date
+     * @param playGame
+     * @param startDate
+     * @return
+     */
+    public PlayGame setUpGame(final PlayGame playGame, final Date startDate);
+
     /**
      * Start a game
      * @param playGame
-     * @param startDate
      * @return PlayGame with status running
      */
-    public PlayGame startGame(PlayGame playGame, Date startDate);
+    public PlayGame startPlayGame(final PlayGame playGame);
 
     /**
      * End a game
@@ -82,6 +90,14 @@ public interface PlayGameService {
     public PlayGame joinGame(String playGameId, User user);
 
     /**
+     * quitGame
+     * @param playGameId
+     * @param user
+     * @return
+     */
+    public PlayGame quitGame(String playGameId, User user);
+
+    /**
      * Get the list of connected user in the application
      * @return connectedUserBean list
      */
@@ -120,4 +136,6 @@ public interface PlayGameService {
      * @return
      */
     public boolean isEnded(PlayGame playGame , DateTime atTime);
+
+    public void updateTimers();
 }
