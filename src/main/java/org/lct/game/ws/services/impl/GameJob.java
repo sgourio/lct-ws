@@ -5,6 +5,7 @@ import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.view.Round;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
+import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
 import org.quartz.UnableToInterruptJobException;
@@ -15,7 +16,7 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 /**
  * Created by sgourio on 14/08/15.
  */
-public class GameJob extends QuartzJobBean {
+public class GameJob extends QuartzJobBean implements InterruptableJob {
     private static final Logger logger = LoggerFactory.getLogger(GameJob.class);
 
     private String playGameId;
@@ -61,5 +62,9 @@ public class GameJob extends QuartzJobBean {
             }
             this.eventService.publishRound(playGame, round);
         }
+    }
+
+    @Override
+    public void interrupt() throws UnableToInterruptJobException {
     }
 }

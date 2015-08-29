@@ -11,6 +11,7 @@ import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.*;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
+import org.lct.game.ws.beans.view.WordResult;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.PlayGameRepository;
 import org.lct.game.ws.services.EventService;
@@ -86,6 +87,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         PlayGame startedGame = playGameBuilder.createPlayGame();
 
         startedGame = playGameRepository.save(startedGame);
+        this.eventService.publishMetaData(getPlayGameMetaBean(startedGame));
         scheduleGame(startedGame);
         return startedGame;
     }
@@ -308,4 +310,23 @@ public class PlayGameServiceImpl implements PlayGameService {
     public PlayGame getPlayGame(String playGameId) {
         return playGameRepository.findOne(playGameId);
     }
+
+    /**
+     *
+     * @param playGameId
+     * @param atTime
+     * @param wordReference for example: MUT(I)EZ 	 3B
+     * @return
+     */
+    public WordResult word(String playGameId, DateTime atTime, String wordReference){
+        PlayGame playGame = this.getPlayGame(playGameId);
+        if( playGame != null ){
+            org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
+            BoardGame boardGame = round.getBoardGame();
+
+        }
+        return null;
+    }
+
+
 }

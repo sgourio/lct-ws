@@ -105,6 +105,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void publishMetaData(PlayGameMetaBean playGameMetaBean){
+        logger.info("Publish meta " + playGameMetaBean.getPlayGameId());
         messagingTemplate.convertAndSend(metadata.replace(":gameId" ,playGameMetaBean.getPlayGameId()), playGameMetaBean);
     }
 
