@@ -6,6 +6,7 @@
 
 package org.lct.game.ws.beans.model.gaming;
 
+import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.Game;
 
 import java.util.ArrayList;
@@ -86,7 +87,8 @@ public class PlayGameBuilder {
     }
 
     public PlayGame createPlayGame() {
-        return new PlayGame(id, game, name, creationDate, startDate, owner, playerGameList, playRoundList, status, roundTime);
+        Date endDate = startDate != null ? new DateTime(startDate).plusSeconds(roundTime * playRoundList.size()).toDate() : null;
+        return new PlayGame(id, game, name, creationDate, startDate, endDate, owner, playerGameList, playRoundList, status, roundTime);
     }
 
 

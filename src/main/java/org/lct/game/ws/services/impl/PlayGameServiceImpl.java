@@ -140,7 +140,8 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     @Override
     public void scheduleAllRunningGames() {
-        List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.running.getId());
+        List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.opened.getId());
+        playGameList.addAll(playGameRepository.findByStatus(PlayGameStatus.running.getId()));
         for( PlayGame playGame : playGameList ){
             scheduleGame(playGame);
         }
@@ -230,27 +231,42 @@ public class PlayGameServiceImpl implements PlayGameService {
         return new org.lct.game.ws.beans.view.Round(roundNumber, boardGame, draw, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
     }
 
-    @Scheduled(fixedRate = 3000)
+    /**
+     * Synchronise the timer of game players
+     */
+    @Scheduled(fixedRate = 10000)
     public void updateTimers(){
         List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.running.getId());
         playGameList.addAll(playGameRepository.findByStatus(PlayGameStatus.opened.getId()));
         for(PlayGame playGame : playGameList){
             if( playGame.getStartDate() != null ) {
-                org.lct.game.ws.beans.view.Round round = getRound(playGame, DateTime.now());
-                long countDown = 0;
-                if (round == null) {
-                    countDown = new Duration(DateTime.now(), new DateTime(playGame.getStartDate())).getStandardSeconds();
-                } else {
-                    countDown = new Duration(DateTime.now(), new DateTime(round.getEndDate())).getStandardSeconds();
-                }
-                eventService.publishTimer(playGame, Math.abs(countDown));
+                eventService.publishTimer(playGame, getTimer(playGame));
             }
         }
     }
 
     @Override
+    public long getTimer(PlayGame playGame){
+        long countDown = 0;
+        if( playGame != null && playGame.getStartDate() != null && !playGame.getStatus().equals(PlayGameStatus.ended.getId())) {
+            org.lct.game.ws.beans.view.Round round = getRound(playGame, DateTime.now());
+            if (round == null) {
+                countDown = new Duration(DateTime.now(), new DateTime(playGame.getStartDate())).getStandardSeconds();
+            } else {
+                countDown = new Duration(DateTime.now(), new DateTime(round.getEndDate())).getStandardSeconds();
+            }
+        }
+        return Math.abs(countDown);
+    }
+
+    @Override
     public PlayGameMetaBean getPlayGameMetaBean(String playGameId){
-        return playGameToPlayGameMetaBean(playGameRepository.findOne(playGameId));
+        return getPlayGameMetaBean(playGameRepository.findOne(playGameId));
+    }
+
+    @Override
+    public PlayGameMetaBean getPlayGameMetaBean(PlayGame playGame){
+        return playGameToPlayGameMetaBean(playGame);
     }
 
     @Override

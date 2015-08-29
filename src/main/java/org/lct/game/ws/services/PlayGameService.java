@@ -80,6 +80,7 @@ public interface PlayGameService {
      * @return
      */
     public PlayGameMetaBean getPlayGameMetaBean(String playGameId);
+    public PlayGameMetaBean getPlayGameMetaBean(PlayGame playGame);
 
 
     /**
@@ -116,6 +117,13 @@ public interface PlayGameService {
      * @return
      */
     public PlayGame getPlayGame(String playGameId);
+
+    /**
+     * Get timer for a game
+     * @param playGame
+     * @return
+     */
+    public long getTimer(PlayGame playGame);
 
 
     /**

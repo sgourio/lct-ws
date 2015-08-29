@@ -151,6 +151,23 @@ public class PlayGameController {
         return playGameService.getPlayerGameList(playGameId);
     }
 
+    /**
+     * Return the time left for next round or gameStart
+     * @return Player list
+     */
+    @RequestMapping(value="/game/{id}/timer", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String getTimer(@PathVariable("id") String playGameId, @ModelAttribute User user){
+        String result = "";
+        if( playGameId != null ) {
+            PlayGame playGame = playGameService.getPlayGame(playGameId);
+            result = String.valueOf(playGameService.getTimer(playGame));
+        }
+        return  result;
+    }
+
+
     @RequestMapping(value="/game/{id}/round/current", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody

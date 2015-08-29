@@ -3,6 +3,7 @@ package org.lct.game.ws.services;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.Round;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface EventService {
     public void publishTimer(PlayGame playGame, long countDown);
 
     public void publishRound(PlayGame playGame, Round round);
+
+    public void publishMetaData(PlayGameMetaBean playGameMetaBean);
 }

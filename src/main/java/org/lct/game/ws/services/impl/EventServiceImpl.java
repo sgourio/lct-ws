@@ -4,6 +4,7 @@ import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.services.EventService;
 import org.slf4j.Logger;
@@ -33,7 +34,9 @@ public class EventServiceImpl implements EventService {
     private static String playerList = "/topic/game/:gameId/players";
     private static String gameRound = "/topic/game/:gameId/round";
     private static String timer = "/topic/game/:gameId/timer";
+    private static String metadata = "/topic/game/:gameId/metadata";
 
+    private Set<String> alreadyConnect;
     private Set<User> userToConnect;
     private Set<PlayGame> playGameSet;
 
@@ -43,7 +46,9 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void registrerUser(User user) {
-        userToConnect.add(user);
+        if( !alreadyConnect.contains(user.getId()) ) {
+            userToConnect.add(user);
+        }
     }
 
     @Scheduled(fixedRate = 2000)
@@ -61,6 +66,15 @@ public class EventServiceImpl implements EventService {
     }
 
     @Scheduled(fixedRate = 2000)
+    public void alreadyConnectUser(){
+        Set<String> connected = new HashSet<>();
+        for(ConnectedUserBean connectedUserBean : connectedUserRepository.findAll()){
+            connected.add(connectedUserBean.getId());
+        }
+        alreadyConnect = connected;
+    }
+
+    @Scheduled(fixedRate = 2000)
     public void disconnectUser() {
         DateTime dateTime = new DateTime();
         Date expireLimit = dateTime.minusMinutes(30).toDate();
@@ -74,17 +88,24 @@ public class EventServiceImpl implements EventService {
         }
     }
 
+    @Override
     public void joinGame(PlayGame playGame){
         messagingTemplate.convertAndSend(playerList.replace(":gameId" ,playGame.getId()), playGame.getPlayerGameList());
     }
 
+    @Override
     public void publishRound(PlayGame playGame, org.lct.game.ws.beans.view.Round round){
         messagingTemplate.convertAndSend(gameRound.replace(":gameId" ,playGame.getId()), round);
     }
 
+    @Override
     public void publishTimer(PlayGame playGame, long countDown){
         messagingTemplate.convertAndSend(timer.replace(":gameId" ,playGame.getId()), countDown);
     }
 
+    @Override
+    public void publishMetaData(PlayGameMetaBean playGameMetaBean){
+        messagingTemplate.convertAndSend(metadata.replace(":gameId" ,playGameMetaBean.getPlayGameId()), playGameMetaBean);
+    }
 
 }

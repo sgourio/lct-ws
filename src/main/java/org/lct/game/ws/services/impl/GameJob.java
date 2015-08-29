@@ -1,13 +1,13 @@
 package org.lct.game.ws.services.impl;
 
 import org.joda.time.DateTime;
-import org.joda.time.Duration;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.view.Round;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
+import org.quartz.UnableToInterruptJobException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.quartz.QuartzJobBean;
@@ -37,21 +37,27 @@ public class GameJob extends QuartzJobBean {
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
+        DateTime atTime = new DateTime(context.getFireTime());
         PlayGame playGame = playGameService.getPlayGame(playGameId);
-        Round round = playGameService.getRound(playGame, DateTime.now());
-        logger.info(playGame + " round " + round);
-        if( round != null ) {
-
-            if( round.getRoundNumber() == 1 ){
-                playGame = playGameService.startPlayGame(playGame);
+        DateTime playGameEndDate = new DateTime(playGame.getEndDate());
+        boolean isFinished = atTime.isEqual(playGameEndDate) || atTime.isAfter(playGameEndDate);
+        if ( isFinished) {
+            playGameService.endGame(playGame);
+            this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));
+            try {
+                context.getScheduler().interrupt(context.getFireInstanceId());
+            } catch (UnableToInterruptJobException e) {
+                logger.error("",e);
             }
-
-            // test if finished
-            if (playGameService.isEnded(playGame, DateTime.now())) {
-                playGameService.endGame(playGame);
-            }else {
-                long countDown = new Duration(DateTime.now(), new DateTime(round.getEndDate()).plus(playGame.getRoundTime() * 1000)).getStandardSeconds();
-                this.eventService.publishTimer(playGame, countDown);
+        } else {
+            Round round = playGameService.getRound(playGame, atTime);
+            logger.info(playGame + " round " + round);
+            if (round != null) {
+                if (round.getRoundNumber() == 1) {
+                    playGame = playGameService.startPlayGame(playGame);
+                    this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));
+                }
+                this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
             }
             this.eventService.publishRound(playGame, round);
         }
