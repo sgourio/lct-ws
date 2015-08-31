@@ -1,9 +1,13 @@
 package org.lct.game.ws.services.impl;
 
+import org.apache.commons.lang3.CharUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
+import org.lct.dictionary.beans.Dictionary;
+import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.beans.PlayGameStatus;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
@@ -11,6 +15,7 @@ import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.*;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
+import org.lct.game.ws.beans.view.Word;
 import org.lct.game.ws.beans.view.WordResult;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.PlayGameRepository;
@@ -48,13 +53,15 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final ConnectedUserRepository connectedUserRepository;
     private final SchedulerFactoryBean schedulerFactoryBean;
     private final EventService eventService;
+    private final DictionaryService dictionaryService;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
         this.schedulerFactoryBean = schedulerFactoryBean;
         this.eventService = eventService;
+        this.dictionaryService = dictionaryService;
     }
 
     @Override
@@ -318,15 +325,124 @@ public class PlayGameServiceImpl implements PlayGameService {
      * @param wordReference for example: MUT(I)EZ 	 3B
      * @return
      */
-    public WordResult word(String playGameId, DateTime atTime, String wordReference){
+    public WordResult word(String playGameId, DateTime atTime, String wordReference, Dictionary dictionary){
+        List<Word> subWordList = new ArrayList<>();
+        String value = null;
+        int total = 0;
         PlayGame playGame = this.getPlayGame(playGameId);
         if( playGame != null ){
             org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
             BoardGame boardGame = round.getBoardGame();
+            String[] wordReferenceTab = wordReference.split("\t");
+            String serializedValue = wordReferenceTab[0];
+            String reference = wordReferenceTab[1];
+            if( serializedValue != null && reference != null ){
+                try {
+                    int row = getRow(reference);
+                    int column = getColumn(reference);
+                    if( !isHorizontal(reference) ){
+                        row = getColumn(reference);
+                        column = getRow(reference);
+                        boardGame = boardGame.transpose();
+                    }
 
+                    int currentColumn = column;
+                    List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
+                    BoardGame activeBoardGame = boardGame;
+                    for( DroppedTile droppedTile : droppedTileList ){
+                        activeBoardGame = activeBoardGame.dropTile(row, column, droppedTile);
+                        DroppedWord verticalWord = boardService.getVerticalWord(activeBoardGame, row, currentColumn);
+                        boolean valid = boardService.isValid(dictionaryService, dictionary, verticalWord.getSquareList());
+                        Word word = new Word(verticalWord.getValue(), verticalWord.getPoints(), valid);
+                        subWordList.add(word);
+                        currentColumn++;
+                    }
+                    DroppedWord verticalWord = boardService.getHorizontalWord(activeBoardGame, row, currentColumn);
+                    boolean valid = boardService.isValid(dictionaryService, dictionary, verticalWord.getSquareList());
+                    Word word = new Word(verticalWord.getValue(), verticalWord.getPoints(), valid);
+                    subWordList.add(word);
+
+                    value = word.getWord();
+                    for( Word w : subWordList){
+                        if( !w.isValid() ){
+                            total = 0;
+                            break;
+                        }else{
+                            total += w.getPoint();
+                        }
+                    }
+                } catch (Exception e) {
+                    logger.error("",e);
+                }
+            }
+
+        }
+        return new WordResult(value, total, subWordList);
+    }
+
+    private int getRow(String reference) throws Exception {
+        for( char c : reference.toCharArray()) {
+            if(CharUtils.isAsciiAlpha(c)) {
+                return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(c);
+            }
+        }
+        throw new Exception("No alpha numeric char in '"+ reference+"'");
+    }
+
+    private int getColumn(String reference) throws Exception{
+        String num = reference.replaceAll("[^0-9 ]", "");
+        if(StringUtils.isNumeric(num)){
+            return Integer.parseInt(num) - 1;
+        }
+        throw new Exception("No numeric part in '" + reference +"'");
+    }
+
+    private boolean isHorizontal(String reference){
+        return CharUtils.isAsciiAlpha(reference.toCharArray()[0]);
+    }
+
+    private List<DroppedTile> getDroppedTileList(String word){
+        List<DroppedTile> result = new ArrayList<>();
+        boolean wildcard = false;
+        for( char c : word.toCharArray()) {
+            if( c == '('){
+                wildcard = true;
+                continue;
+            }
+            if( c == ')'){
+                wildcard = false;
+                continue;
+            }
+            Tile tile;
+            if( wildcard ){
+                tile = Tile.WILDCARD;
+            }else{
+                tile = charToTile(c);
+            }
+
+            result.add(new DroppedTile(tile, String.valueOf(c)));
+        }
+        return result;
+    }
+
+    private Tile charToTile(char c){
+        try {
+            if( c == '?'){
+                return Tile.WILDCARD;
+            }else {
+                return (Tile) Tile.class.getDeclaredField(String.valueOf(c)).get(null);
+            }
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         return null;
     }
+
+
+
+
 
 
 }

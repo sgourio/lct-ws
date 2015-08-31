@@ -1,6 +1,7 @@
 package org.lct.game.ws.controllers;
 
 import org.joda.time.DateTime;
+import org.lct.dictionary.beans.Dictionary;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
@@ -176,11 +177,8 @@ public class PlayGameController {
     @RequestMapping(value="/game/{id}/word", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public WordResult word(@RequestParam("reference") String reference, @ModelAttribute User user){
-        WordResult wordResult = null;
-
-
-
+    public WordResult word(@PathVariable("id") String playGameId, @RequestParam("reference") String reference, @ModelAttribute User user){
+        WordResult wordResult = playGameService.word(playGameId, DateTime.now(), reference, Dictionary.french);
         return wordResult;
     }
 

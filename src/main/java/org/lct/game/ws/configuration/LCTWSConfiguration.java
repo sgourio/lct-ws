@@ -57,7 +57,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService());
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService);
     }
 
 }
