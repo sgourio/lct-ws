@@ -237,7 +237,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         for( Tile tile : round.getDraw()){
             draw.add(new DroppedTile(tile, tile.getValue()));
         }
-        return new org.lct.game.ws.beans.view.Round(roundNumber, boardGame, draw, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
+        return new org.lct.game.ws.beans.view.Round(playGame.getId(), roundNumber, boardGame, draw, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
     }
 
     /**
@@ -318,6 +318,29 @@ public class PlayGameServiceImpl implements PlayGameService {
         return playGameRepository.findOne(playGameId);
     }
 
+    public WordResult result(List<DroppedWord> droppedWordList, Dictionary dictionary){
+        List<Word> subWordList = new ArrayList<>();
+        DroppedWord mainWord = droppedWordList.get(0);
+        int total = mainWord.getPoints();
+        boolean validTurn = true;
+        for( int i = 1 ; i < droppedWordList.size() ; i++){
+            DroppedWord droppedWord = droppedWordList.get(i);
+            total += droppedWord.getPoints();
+            boolean valid = boardService.isValid(dictionaryService, dictionary, droppedWord.getSquareList());
+            subWordList.add(new Word(droppedWord.getValue(), droppedWord.getPoints(), valid));
+            if( !valid ){
+                validTurn = false;
+            }
+        }
+
+        if(!validTurn){
+            total = 0;
+        }
+
+        return new WordResult(mainWord.getValue(), total, subWordList);
+    }
+
+
     /**
      *
      * @param playGameId
@@ -325,59 +348,81 @@ public class PlayGameServiceImpl implements PlayGameService {
      * @param wordReference for example: MUT(I)EZ 	 3B
      * @return
      */
-    public WordResult word(String playGameId, DateTime atTime, String wordReference, Dictionary dictionary){
-        List<Word> subWordList = new ArrayList<>();
-        String value = null;
-        int total = 0;
-        PlayGame playGame = this.getPlayGame(playGameId);
-        if( playGame != null ){
-            org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
-            BoardGame boardGame = round.getBoardGame();
-            String[] wordReferenceTab = wordReference.split("\t");
-            String serializedValue = wordReferenceTab[0];
-            String reference = wordReferenceTab[1];
-            if( serializedValue != null && reference != null ){
-                try {
-                    int row = getRow(reference);
-                    int column = getColumn(reference);
-                    if( !isHorizontal(reference) ){
-                        row = getColumn(reference);
-                        column = getRow(reference);
-                        boardGame = boardGame.transpose();
-                    }
+    public List<DroppedWord>    getDroppedWords(BoardGame boardGame, String wordReference){
+        List<DroppedWord> droppedWordList = new ArrayList<>();
+        String[] wordReferenceTab = wordReference.split("\t");
+        String serializedValue = wordReferenceTab[0];
+        String reference = wordReferenceTab[1];
+        if( serializedValue != null && reference != null ){
+            try {
+                int row = getRow(reference);
+                int column = getColumn(reference);
+                boolean horizontal = isHorizontal(reference);
+                if( !horizontal ){
+                    row = getColumn(reference);
+                    column = getRow(reference);
+                    boardGame = boardGame.transpose();
+                }
 
-                    int currentColumn = column;
-                    List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
-                    BoardGame activeBoardGame = boardGame;
-                    for( DroppedTile droppedTile : droppedTileList ){
+                int currentColumn = column;
+                List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
+                BoardGame activeBoardGame = boardGame;
+                for( DroppedTile droppedTile : droppedTileList ){
+                    if( activeBoardGame.getSquares()[row][column].isEmpty() ) {
                         activeBoardGame = activeBoardGame.dropTile(row, column, droppedTile);
                         DroppedWord verticalWord = boardService.getVerticalWord(activeBoardGame, row, currentColumn);
-                        boolean valid = boardService.isValid(dictionaryService, dictionary, verticalWord.getSquareList());
-                        Word word = new Word(verticalWord.getValue(), verticalWord.getPoints(), valid);
-                        subWordList.add(word);
-                        currentColumn++;
-                    }
-                    DroppedWord verticalWord = boardService.getHorizontalWord(activeBoardGame, row, currentColumn);
-                    boolean valid = boardService.isValid(dictionaryService, dictionary, verticalWord.getSquareList());
-                    Word word = new Word(verticalWord.getValue(), verticalWord.getPoints(), valid);
-                    subWordList.add(word);
-
-                    value = word.getWord();
-                    for( Word w : subWordList){
-                        if( !w.isValid() ){
-                            total = 0;
-                            break;
-                        }else{
-                            total += w.getPoint();
+                        if( verticalWord.getSquareList().size() > 1 ) {
+                            if (!horizontal) {
+                                verticalWord = verticalWord.transpose();
+                            }
+                            droppedWordList.add(verticalWord);
                         }
                     }
-                } catch (Exception e) {
-                    logger.error("",e);
+                    currentColumn++;
+                }
+                DroppedWord horizontalWord = boardService.getHorizontalWord(activeBoardGame, row, column);
+                if( !horizontal ){
+                    horizontalWord = horizontalWord.transpose();
+                }
+                droppedWordList.add(0, horizontalWord);
+
+            } catch (Exception e) {
+                logger.error("",e);
+            }
+        }
+        return droppedWordList;
+    }
+
+    public WordResult word(User user, String playGameId, DateTime atTime, String wordReference, Dictionary dictionary){
+        WordResult wordResult = null;
+        PlayGame playGame = this.getPlayGame(playGameId);
+        if( playGame != null ) {
+            org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
+            PlayRound playRound = playGame.getPlayRoundList().get(round.getRoundNumber() - 1);
+            BoardGame boardGame = round.getBoardGame();
+            List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
+            wordResult = result(droppedWordList, dictionary);
+            if( wordResult.getPoint() > 0) {
+                PlayerRound playerRound = new PlayerRound(user.getId(), user.getName(), wordResult.getPoint(), wordReference);
+                boolean toSave = true;
+                Iterator<PlayerRound> playerRoundIterator = playRound.getPlayerRoundList().iterator();
+                while(playerRoundIterator.hasNext()) {
+                    PlayerRound player = playerRoundIterator.next();
+                    if (player.getUserId().equals(user.getId())) {
+                        if( player.getScore() > playerRound.getScore()){
+                            toSave = false;
+                        }else{
+                            playerRoundIterator.remove();
+                        }
+                    }
+                }
+                if( toSave ){
+                    playRound.getPlayerRoundList().add(playerRound);
+                    playGameRepository.save(playGame);
                 }
             }
-
         }
-        return new WordResult(value, total, subWordList);
+        return wordResult;
     }
 
     private int getRow(String reference) throws Exception {

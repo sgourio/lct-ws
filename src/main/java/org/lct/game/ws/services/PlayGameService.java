@@ -149,5 +149,5 @@ public interface PlayGameService {
 
     public void updateTimers();
 
-    public WordResult word(String playGameId, DateTime atTime, String wordReference, Dictionary dictionary);
+    public WordResult word(User user, String playGameId, DateTime atTime, String wordReference, Dictionary dictionary);
 }

@@ -177,9 +177,16 @@ public class PlayGameController {
     @RequestMapping(value="/game/{id}/word", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public WordResult word(@PathVariable("id") String playGameId, @RequestParam("reference") String reference, @ModelAttribute User user){
-        WordResult wordResult = playGameService.word(playGameId, DateTime.now(), reference, Dictionary.french);
-        return wordResult;
+    public WordResult putWord(@PathVariable("id") String playGameId, @RequestParam("wordReference") String wordReference, @RequestParam("roundNumber") int roundNumber, @ModelAttribute User user){
+        DateTime callDate = DateTime.now();
+        PlayGame playGame = playGameService.getPlayGame(playGameId);
+        Round round = playGameService.getRound(playGame,callDate);
+        if( round.getRoundNumber() == roundNumber ) {
+            WordResult wordResult = playGameService.word(user, playGameId, callDate, wordReference, Dictionary.french);
+            return wordResult;
+        }else{
+            logger.info("Round has finished");
+            return new WordResult("", 0 , new ArrayList<Word>());
+        }
     }
-
 }

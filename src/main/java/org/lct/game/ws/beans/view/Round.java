@@ -13,6 +13,7 @@ import java.util.List;
  * Created by sgourio on 14/08/15.
  */
 public class Round {
+    private final String playGameId;
     private final int roundNumber;
     private final BoardGame boardGame;
     private final List<DroppedTile> draw;
@@ -20,7 +21,8 @@ public class Round {
     private final Date endDate;
     private final DroppedWord lastDroppedWord;
 
-    public Round(int roundNumber, BoardGame boardGame, List<DroppedTile> draw, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
+    public Round(String playGameId, int roundNumber, BoardGame boardGame, List<DroppedTile> draw, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
+        this.playGameId = playGameId;
         this.roundNumber = roundNumber;
         this.boardGame = boardGame;
         this.draw = draw;
@@ -56,5 +58,9 @@ public class Round {
     @Override
     public String toString() {
         return String.valueOf(roundNumber);
+    }
+
+    public String getPlayGameId() {
+        return playGameId;
     }
 }
