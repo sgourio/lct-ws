@@ -12,12 +12,12 @@ package org.lct.game.ws.beans.view;
 public class Word {
 
     private final String word;
-    private final int point;
+    private final int points;
     private final boolean valid;
 
-    public Word(String word, int point, boolean valid) {
+    public Word(String word, int points, boolean valid) {
         this.word = word;
-        this.point = point;
+        this.points = points;
         this.valid = valid;
     }
 
@@ -25,8 +25,8 @@ public class Word {
         return word;
     }
 
-    public int getPoint() {
-        return point;
+    public int getPoints() {
+        return points;
     }
 
     public boolean isValid() {

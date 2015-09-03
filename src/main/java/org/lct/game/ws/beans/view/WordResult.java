@@ -13,22 +13,23 @@ import java.util.List;
  */
 public class WordResult {
 
-    private final String word;
-    private final int point;
+    private final Word word;
+    private final int total;
     private final List<Word> subWordList;
 
-    public WordResult(String word, int point, List<Word> subWordList) {
+
+    public WordResult(Word word, int total, List<Word> subWordList) {
         this.word = word;
-        this.point = point;
+        this.total = total;
         this.subWordList = subWordList;
     }
 
-    public String getWord() {
+    public Word getWord() {
         return word;
     }
 
-    public int getPoint() {
-        return point;
+    public int getTotal() {
+        return total;
     }
 
     public List<Word> getSubWordList() {

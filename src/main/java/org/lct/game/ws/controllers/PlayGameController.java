@@ -186,7 +186,7 @@ public class PlayGameController {
             return wordResult;
         }else{
             logger.info("Round has finished");
-            return new WordResult("", 0 , new ArrayList<Word>());
+            return new WordResult(null, 0 , new ArrayList<Word>());
         }
     }
 }

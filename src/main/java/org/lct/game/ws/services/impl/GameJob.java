@@ -41,7 +41,7 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
         DateTime atTime = new DateTime(context.getFireTime());
         PlayGame playGame = playGameService.getPlayGame(playGameId);
         DateTime playGameEndDate = new DateTime(playGame.getEndDate());
-        boolean isFinished = atTime.isEqual(playGameEndDate) || atTime.isAfter(playGameEndDate);
+        boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
         if ( isFinished) {
             playGameService.endGame(playGame);
             this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));

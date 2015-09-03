@@ -320,13 +320,15 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     public WordResult result(List<DroppedWord> droppedWordList, Dictionary dictionary){
         List<Word> subWordList = new ArrayList<>();
-        DroppedWord mainWord = droppedWordList.get(0);
-        int total = mainWord.getPoints();
-        boolean validTurn = true;
+        DroppedWord mainDroppedWord = droppedWordList.get(0);
+        boolean valid = boardService.isValid(dictionaryService, dictionary, mainDroppedWord.getSquareList());
+        Word mainWord = new Word(mainDroppedWord.getValue(), mainDroppedWord.getPoints(), valid);
+        int total = mainDroppedWord.getPoints();
+        boolean validTurn = valid;
         for( int i = 1 ; i < droppedWordList.size() ; i++){
             DroppedWord droppedWord = droppedWordList.get(i);
             total += droppedWord.getPoints();
-            boolean valid = boardService.isValid(dictionaryService, dictionary, droppedWord.getSquareList());
+            valid = boardService.isValid(dictionaryService, dictionary, droppedWord.getSquareList());
             subWordList.add(new Word(droppedWord.getValue(), droppedWord.getPoints(), valid));
             if( !valid ){
                 validTurn = false;
@@ -336,19 +338,17 @@ public class PlayGameServiceImpl implements PlayGameService {
         if(!validTurn){
             total = 0;
         }
-
-        return new WordResult(mainWord.getValue(), total, subWordList);
+        return new WordResult(mainWord, total, subWordList);
     }
 
 
     /**
-     *
-     * @param playGameId
-     * @param atTime
+     *  Get droppedWords in the game
+     * @param boardGame
      * @param wordReference for example: MUT(I)EZ 	 3B
      * @return
      */
-    public List<DroppedWord>    getDroppedWords(BoardGame boardGame, String wordReference){
+    public List<DroppedWord> getDroppedWords(BoardGame boardGame, String wordReference){
         List<DroppedWord> droppedWordList = new ArrayList<>();
         String[] wordReferenceTab = wordReference.split("\t");
         String serializedValue = wordReferenceTab[0];
@@ -368,8 +368,8 @@ public class PlayGameServiceImpl implements PlayGameService {
                 List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
                 BoardGame activeBoardGame = boardGame;
                 for( DroppedTile droppedTile : droppedTileList ){
-                    if( activeBoardGame.getSquares()[row][column].isEmpty() ) {
-                        activeBoardGame = activeBoardGame.dropTile(row, column, droppedTile);
+                    if( activeBoardGame.getSquares()[row][currentColumn].isEmpty() ) {
+                        activeBoardGame = activeBoardGame.dropTile(row, currentColumn, droppedTile);
                         DroppedWord verticalWord = boardService.getVerticalWord(activeBoardGame, row, currentColumn);
                         if( verticalWord.getSquareList().size() > 1 ) {
                             if (!horizontal) {
@@ -402,8 +402,8 @@ public class PlayGameServiceImpl implements PlayGameService {
             BoardGame boardGame = round.getBoardGame();
             List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
             wordResult = result(droppedWordList, dictionary);
-            if( wordResult.getPoint() > 0) {
-                PlayerRound playerRound = new PlayerRound(user.getId(), user.getName(), wordResult.getPoint(), wordReference);
+            if( wordResult.getTotal() > 0) {
+                PlayerRound playerRound = new PlayerRound(user.getId(), user.getName(), wordResult.getTotal(), wordReference);
                 boolean toSave = true;
                 Iterator<PlayerRound> playerRoundIterator = playRound.getPlayerRoundList().iterator();
                 while(playerRoundIterator.hasNext()) {
