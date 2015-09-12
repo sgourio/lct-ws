@@ -14,11 +14,14 @@ import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.*;
+import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.Word;
 import org.lct.game.ws.beans.view.WordResult;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.PlayGameRepository;
+import org.lct.game.ws.dao.PlayerRepository;
+import org.lct.game.ws.dao.PlayerRoundRepository;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
@@ -26,21 +29,17 @@ import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
 import org.lct.gameboard.ws.beans.view.DroppedTile;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
+import org.lct.gameboard.ws.beans.view.Square;
 import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
 import org.quartz.*;
-import org.quartz.impl.StdSchedulerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
-import java.text.DateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by sgourio on 14/08/15.
@@ -54,55 +53,67 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final SchedulerFactoryBean schedulerFactoryBean;
     private final EventService eventService;
     private final DictionaryService dictionaryService;
+    private final PlayerRepository playerRepository;
+    private final PlayerRoundRepository playerRoundRepository;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
         this.schedulerFactoryBean = schedulerFactoryBean;
         this.eventService = eventService;
         this.dictionaryService = dictionaryService;
+        this.playerRepository = playerRepository;
+        this.playerRoundRepository = playerRoundRepository;
     }
 
     @Override
     public PlayGame openGame(Game game, String name, int roundTime, Date startDate, User user) {
-        PlayerGame owner = new PlayerGame(user.getId(), user.getName(), 0);
         List<PlayRound> playRoundList = new ArrayList<>(game.getRoundList().size());
+        int total = 0;
         for( Round round : game.getRoundList()){
-            playRoundList.add(new PlayRound(new ArrayList<PlayerRound>()));
+            DroppedWord droppedWord = round.getDroppedWord();
+            total += droppedWord.getPoints();
+            Word word = new Word(droppedWord.getValue(), droppedWord.getReference(), droppedWord.getPoints(), true, isScrabble(droppedWord));
+            playRoundList.add( new PlayRound(word, total) );
         }
         PlayGame playGame = new PlayGameBuilder()
                 .setGame(game)
                 .setName(name)
                 .setCreationDate(new Date())
                 .setStartDate(startDate)
-                .setOwner(owner)
-                .setPlayerGameList(new ArrayList<PlayerGame>())
+                .setOwner(user.getName())
                 .setPlayRoundList(playRoundList)
                 .setStatus(PlayGameStatus.opened.getId())
                 .setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
-        logger.info("Game '"+name+"'opened by " + user);
+        logger.info("Game '" + name + "'opened by " + user);
+        joinGame(playGame.getId(), user);
         return playGame;
     }
 
-    public PlayGame setUpGame(final PlayGame playGame, final Date startDate){
-        DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
-        logger.info("Start " + playGame +" at " + fmt.print(startDate.getTime()));
-        PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
-        playGameBuilder.setStartDate(startDate);
-        PlayGame startedGame = playGameBuilder.createPlayGame();
+    public PlayGame setUpGame(final PlayGame playGame, final DateTime startDate){
+        if( playGame.getStartDate() == null ) {
+            DateTimeFormatter fmt = ISODateTimeFormat.dateHourMinute();
+            logger.info("Start " + playGame + " at " + fmt.print(startDate));
+            PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
+            playGameBuilder.setStartDate(startDate.toDate());
+            PlayGame startedGame = playGameBuilder.createPlayGame();
 
-        startedGame = playGameRepository.save(startedGame);
-        this.eventService.publishMetaData(getPlayGameMetaBean(startedGame));
-        scheduleGame(startedGame);
-        return startedGame;
+            startedGame = playGameRepository.save(startedGame);
+            this.eventService.publishMetaData(getPlayGameMetaBean(startedGame));
+            scheduleGame(startedGame);
+            return startedGame;
+        }else{
+            return  playGame;
+        }
     }
 
     public PlayGame startPlayGame(final PlayGame playGame){
         PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
         playGameBuilder.setStatus(PlayGameStatus.running.getId());
         PlayGame startedGame = playGameBuilder.createPlayGame();
+        logger.info("Game " + startedGame +" started!");
         return playGameRepository.save(startedGame);
     }
 
@@ -187,11 +198,11 @@ public class PlayGameServiceImpl implements PlayGameService {
         }
         return new PlayGameMetaBean(playGame.getId(),
                 playGame.getName(),
-                playGame.getOwner().getName(),
+                playGame.getOwner(),
                 playGame.getPlayRoundList().size(),
                 playGame.getRoundTime(),
                 actualRoundNumber,
-                playGame.getPlayerGameList().size(),
+                getPlayerListForGame(playGame.getId()).size(),
                 playGame.getStatus(),
                 playGame.getStartDate(),
                 endDate);
@@ -281,31 +292,33 @@ public class PlayGameServiceImpl implements PlayGameService {
     @Override
     public PlayGame joinGame(String playGameId, User user){
         PlayGame playGame = playGameRepository.findOne(playGameId);
-        PlayerGame playerGame = new PlayerGame(user.getId(), user.getName(), 0);
-        if( playGame != null && !playGame.getPlayerGameList().contains(playerGame) ) {
-            logger.info(user + " join " + playGame);
-            playGame.getPlayerGameList().add(playerGame);
-            playGame = playGameRepository.save(playGame);
+        if( playGame != null ) {
+            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getName(), 0);
+            if (!getPlayerListForGame(playGameId).contains(playerGame)) {
+                logger.info(user + " join " + playGame);
+                List<PlayerRound> playerRoundList = new ArrayList<PlayerRound>();
+                for(int i = 0 ; i < playGame.getPlayRoundList().size(); i++){
+                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getName(), 0, null);
+                    playerRoundList.add(playerRound);
+                }
+                playerRoundRepository.save(playerRoundList);
+                playerRepository.save(playerGame);
+            }
         }
         return playGame;
     }
 
     @Override
     public PlayGame quitGame(String playGameId, User user){
-        PlayGame playGame = playGameRepository.findOne(playGameId);
-        PlayerGame playerGame = new PlayerGame(user.getId(), user.getName(), 0);
-        if( playGame != null && playGame.getPlayerGameList().contains(playerGame) ) {
-            logger.info(user + " quit " + playGame);
-            playGame.getPlayerGameList().remove(playerGame);
-            playGame = playGameRepository.save(playGame);
+        PlayerGame playerGame = playerRepository.findByPlayGameIdAndUserId(playGameId, user.getId());
+        if( playerGame != null ) {
+            playerRepository.delete(playerGame);
+            List<PlayerRound> playerRoundList = playerRoundRepository.findByPlayGameIdAndUserId(playGameId, user.getId());
+            if( playerRoundList != null && playerRoundList.size() > 0 ) {
+                playerRoundRepository.delete(playerRoundList);
+            }
         }
-        return playGame;
-    }
-
-    @Override
-    public List<PlayerGame> getPlayerGameList(String playGameId){
-        PlayGame playGame = playGameRepository.findOne(playGameId);
-        return playGame.getPlayerGameList();
+        return getPlayGame(playGameId);
     }
 
     @Override
@@ -318,18 +331,28 @@ public class PlayGameServiceImpl implements PlayGameService {
         return playGameRepository.findOne(playGameId);
     }
 
+    private boolean isScrabble(DroppedWord droppedWord){
+        int nbDropped = 0;
+        for( Square square : droppedWord.getSquareList()){
+            if( square.isJustDropped() ){
+                nbDropped++;
+            }
+        }
+        return nbDropped == 7;
+    }
+
     public WordResult result(List<DroppedWord> droppedWordList, Dictionary dictionary){
         List<Word> subWordList = new ArrayList<>();
         DroppedWord mainDroppedWord = droppedWordList.get(0);
         boolean valid = boardService.isValid(dictionaryService, dictionary, mainDroppedWord.getSquareList());
-        Word mainWord = new Word(mainDroppedWord.getValue(), mainDroppedWord.getPoints(), valid);
+        boolean scrabble = isScrabble(mainDroppedWord);
+        Word mainWord = new Word(mainDroppedWord.getValue(), mainDroppedWord.getReference(), mainDroppedWord.getPoints(), valid, scrabble);
         int total = mainDroppedWord.getPoints();
         boolean validTurn = valid;
         for( int i = 1 ; i < droppedWordList.size() ; i++){
             DroppedWord droppedWord = droppedWordList.get(i);
-            total += droppedWord.getPoints();
             valid = boardService.isValid(dictionaryService, dictionary, droppedWord.getSquareList());
-            subWordList.add(new Word(droppedWord.getValue(), droppedWord.getPoints(), valid));
+            subWordList.add(new Word(droppedWord.getValue(), droppedWord.getReference(), droppedWord.getPoints(), valid, false));
             if( !valid ){
                 validTurn = false;
             }
@@ -367,6 +390,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                 int currentColumn = column;
                 List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
                 BoardGame activeBoardGame = boardGame;
+                int points = 0;
                 for( DroppedTile droppedTile : droppedTileList ){
                     if( activeBoardGame.getSquares()[row][currentColumn].isEmpty() ) {
                         activeBoardGame = activeBoardGame.dropTile(row, currentColumn, droppedTile);
@@ -376,11 +400,12 @@ public class PlayGameServiceImpl implements PlayGameService {
                                 verticalWord = verticalWord.transpose();
                             }
                             droppedWordList.add(verticalWord);
+                            points += verticalWord.getPoints();
                         }
                     }
                     currentColumn++;
                 }
-                DroppedWord horizontalWord = boardService.getHorizontalWord(activeBoardGame, row, column);
+                DroppedWord horizontalWord = boardService.getHorizontalWord(activeBoardGame, row, column, points);
                 if( !horizontal ){
                     horizontalWord = horizontalWord.transpose();
                 }
@@ -398,27 +423,14 @@ public class PlayGameServiceImpl implements PlayGameService {
         PlayGame playGame = this.getPlayGame(playGameId);
         if( playGame != null ) {
             org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
-            PlayRound playRound = playGame.getPlayRoundList().get(round.getRoundNumber() - 1);
             BoardGame boardGame = round.getBoardGame();
             List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
             wordResult = result(droppedWordList, dictionary);
             if( wordResult.getTotal() > 0) {
-                PlayerRound playerRound = new PlayerRound(user.getId(), user.getName(), wordResult.getTotal(), wordReference);
-                boolean toSave = true;
-                Iterator<PlayerRound> playerRoundIterator = playRound.getPlayerRoundList().iterator();
-                while(playerRoundIterator.hasNext()) {
-                    PlayerRound player = playerRoundIterator.next();
-                    if (player.getUserId().equals(user.getId())) {
-                        if( player.getScore() > playerRound.getScore()){
-                            toSave = false;
-                        }else{
-                            playerRoundIterator.remove();
-                        }
-                    }
-                }
-                if( toSave ){
-                    playRound.getPlayerRoundList().add(playerRound);
-                    playGameRepository.save(playGame);
+                PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
+                if( lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints() ) {
+                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getName(), wordResult.getTotal(), wordResult.getWord());
+                    playerRoundRepository.save(newPlayerRound);
                 }
             }
         }
@@ -485,8 +497,67 @@ public class PlayGameServiceImpl implements PlayGameService {
         return null;
     }
 
+    public GameScore getScores(PlayGame playGame, DateTime atTime){
+        int roundNumber = getRoundNumber(playGame, atTime);
+        if( roundNumber > 1) {
+            return getScore(roundNumber - 1, playGame);
+        }else{
+            // empty scores
+            List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
+            List<GameScore.PlayerGameScore> playerGameScoreList = new ArrayList<GameScore.PlayerGameScore>();
+            for(PlayerGame playerGame : playerGameList){
+                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerGame.getName(), 0, null, 10000);
+                playerGameScoreList.add(playerGameScore);
+            }
+            return new GameScore(playerGameScoreList, null, 0);
+        }
+    }
 
+    @Override
+    public void updateScores(PlayGame playGame){
+        List<PlayerRound> playerRoundList = playerRoundRepository.findByPlayGameId(playGame.getId());
+        Map<String, List<PlayerRound>> playerRoundMap = new HashMap<>();
+        for( PlayerRound playerRound : playerRoundList){
+            List<PlayerRound> currentList = playerRoundMap.get(playerRound.getUserId());
+            if( currentList == null ){
+                currentList = new ArrayList<>();
+                playerRoundMap.put(playerRound.getUserId(), currentList);
+            }
+            currentList.add(playerRound);
+        }
+        List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
+        for(PlayerGame playerGame : playerGameList){
+            List<PlayerRound> currentList = playerRoundMap.get(playerGame.getUserId());
+            if( currentList != null ){
+                int total = 0;
+                for( PlayerRound playerRound : currentList ){
+                    total += playerRound.getScore();
+                }
+                playerRepository.save(new PlayerGame(playerGame.getId(), playerGame.getUserId(), playerGame.getPlayGameId(), playerGame.getName(), total ));
+            }
+        }
 
+    }
+
+    @Cacheable("score")
+    private GameScore getScore(int roundNumber, PlayGame playGame){
+        PlayRound playRound = playGame.getPlayRoundList().get(roundNumber - 1);
+        List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
+        List<GameScore.PlayerGameScore> playerGameScoreList = new ArrayList<GameScore.PlayerGameScore>();
+        for(PlayerGame playerGame : playerGameList){
+            PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), roundNumber);
+            if(playerRound != null ) {
+                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerRound.getName(), playerGame.getScore(), playerRound.getWord(), (int) (playerRound.getScore() / playRound.getScore()) * 10000);
+                playerGameScoreList.add(playerGameScore);
+            }
+        }
+        return new GameScore(playerGameScoreList, playRound.getWord(), playRound.getScore());
+    }
+
+    @Override
+    public List<PlayerGame> getPlayerListForGame(String playGameId){
+        return playerRepository.findByPlayGameId(playGameId);
+    }
 
 
 

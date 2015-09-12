@@ -6,7 +6,6 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
-import org.lct.game.ws.beans.model.gaming.PlayGameBuilder;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.*;
 import org.lct.game.ws.services.EventService;
@@ -17,11 +16,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -68,7 +65,9 @@ public class PlayGameController {
     @ResponseBody
     public String startGame(@RequestBody ToStartGame toStartGame, @ModelAttribute User user){
         PlayGame playGame = playGameService.getPlayGame(toStartGame.getPlayGameId());
-        PlayGame result = playGameService.setUpGame(playGame, toStartGame.getStartDate());
+        DateTime startAt = new DateTime(toStartGame.getStartDate());
+        startAt = startAt.withMillisOfSecond(0);
+        PlayGame result = playGameService.setUpGame(playGame, startAt);
         return result.getId();
     }
 
@@ -106,7 +105,7 @@ public class PlayGameController {
         // TODO check autorisation
         PlayGame playGame = playGameService.joinGame(id, user);
         if( playGame != null ) {
-            eventService.joinGame(playGame);
+            eventService.publishPlayers(playGame, playGameService.getPlayerListForGame(id));
         }
         return "joined";
     }
@@ -122,7 +121,7 @@ public class PlayGameController {
         // TODO check autorisation
         PlayGame playGame = playGameService.quitGame(id, user);
         if( playGame != null ) {
-            eventService.joinGame(playGame);
+            eventService.publishPlayers(playGame, playGameService.getPlayerListForGame(playGame.getId()));
         }
         return "quited";
     }
@@ -146,7 +145,7 @@ public class PlayGameController {
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public List<PlayerGame> getPlayers(@PathVariable("id") String playGameId, @ModelAttribute User user){
-        return playGameService.getPlayerGameList(playGameId);
+        return playGameService.getPlayerListForGame(playGameId);
     }
 
     /**
@@ -174,19 +173,49 @@ public class PlayGameController {
         return playGameService.getRound(playGame, new DateTime());
     }
 
-    @RequestMapping(value="/game/{id}/word", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @RequestMapping(value="/game/{id}/word", method= RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public WordResult putWord(@PathVariable("id") String playGameId, @RequestParam("wordReference") String wordReference, @RequestParam("roundNumber") int roundNumber, @ModelAttribute User user){
+    public WordResult putWord(@PathVariable("id") String playGameId, @RequestBody() PutWord putWord, @ModelAttribute User user){
         DateTime callDate = DateTime.now();
         PlayGame playGame = playGameService.getPlayGame(playGameId);
         Round round = playGameService.getRound(playGame,callDate);
-        if( round.getRoundNumber() == roundNumber ) {
-            WordResult wordResult = playGameService.word(user, playGameId, callDate, wordReference, Dictionary.french);
+        if( round.getRoundNumber() == putWord.getRoundNumber() ) {
+            WordResult wordResult = playGameService.word(user, playGameId, callDate, putWord.getWordReference(), Dictionary.french);
             return wordResult;
         }else{
             logger.info("Round has finished");
             return new WordResult(null, 0 , new ArrayList<Word>());
         }
     }
+
+    @RequestMapping(value="/game/{id}/scores", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public GameScore getScores(@PathVariable("id") String playGameId){
+        DateTime callDate = DateTime.now();
+        PlayGame playGame = playGameService.getPlayGame(playGameId);
+        return playGameService.getScores(playGame, callDate);
+    }
+
+//    public String retest(){
+//        PGame pGame = ImmutablePGame.builder()
+//                .gameName("test")
+//                .creationDate(new Date())
+//                .endDate(new Date())
+//                .owner("test")
+//                .roundTime(0)
+//                .startDate(new Date())
+//                .status("test")
+//                .build();
+//        try {
+//            PGameDTO pGameDTO = new PGameDTO(null, pGame);
+//            pGameDTO = pGameRepository.save(pGameDTO);
+//            pGameDTO = pGameRepository.findOne(pGameDTO.getId());
+//            logger.info(pGameDTO.getpGame().getGameName());
+//        }catch (Throwable t){
+//            logger.error("",t);
+//        }
+//        return "";
+//    }
 }

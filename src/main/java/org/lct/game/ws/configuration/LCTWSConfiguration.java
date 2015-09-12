@@ -7,9 +7,7 @@
 package org.lct.game.ws.configuration;
 
 import org.lct.dictionary.services.DictionaryService;
-import org.lct.game.ws.dao.ConnectedUserRepository;
-import org.lct.game.ws.dao.GameRepository;
-import org.lct.game.ws.dao.PlayGameRepository;
+import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
@@ -45,6 +43,12 @@ public class LCTWSConfiguration {
     @Autowired
     private SchedulerFactoryBean schedulerFactoryBean;
 
+    @Autowired
+    private PlayerRepository playerRepository;
+
+    @Autowired
+    private PlayerRoundRepository playerRoundRepository;
+
     @Bean
     public GameService gameService(){
         return new GameServiceImpl(gameRepository, boardService, dictionaryService);
@@ -57,7 +61,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository);
     }
 
 }

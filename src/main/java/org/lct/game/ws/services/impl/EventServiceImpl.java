@@ -4,6 +4,8 @@ import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.model.gaming.PlayerGame;
+import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.services.EventService;
@@ -35,6 +37,7 @@ public class EventServiceImpl implements EventService {
     private static String gameRound = "/topic/game/:gameId/round";
     private static String timer = "/topic/game/:gameId/timer";
     private static String metadata = "/topic/game/:gameId/metadata";
+    private static String scores = "/topic/game/:gameId/scores";
 
     private Set<String> alreadyConnect;
     private Set<User> userToConnect;
@@ -89,8 +92,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void joinGame(PlayGame playGame){
-        messagingTemplate.convertAndSend(playerList.replace(":gameId" ,playGame.getId()), playGame.getPlayerGameList());
+    public void publishPlayers(PlayGame playGame, List<PlayerGame> players){
+        messagingTemplate.convertAndSend(playerList.replace(":gameId" ,playGame.getId()), players);
     }
 
     @Override
@@ -107,6 +110,12 @@ public class EventServiceImpl implements EventService {
     public void publishMetaData(PlayGameMetaBean playGameMetaBean){
         logger.info("Publish meta " + playGameMetaBean.getPlayGameId());
         messagingTemplate.convertAndSend(metadata.replace(":gameId" ,playGameMetaBean.getPlayGameId()), playGameMetaBean);
+    }
+
+    @Override
+    public void publishScores(PlayGame playGame, GameScore gameScore){
+        logger.info("Publish score " + playGame.getName());
+        messagingTemplate.convertAndSend(scores.replace(":gameId" ,playGame.getId()), gameScore);
     }
 
 }

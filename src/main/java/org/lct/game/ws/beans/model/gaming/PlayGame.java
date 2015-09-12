@@ -9,9 +9,9 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * A game played or beeing played
- * Created by sgourio on 14/08/15.
- */
+* A game played or beeing played
+* Created by sgourio on 14/08/15.
+*/
 public class PlayGame {
 
     @Id
@@ -21,14 +21,13 @@ public class PlayGame {
     private final Date creationDate;
     private final Date startDate;
     private final Date endDate;
-    private final PlayerGame owner;
-    private final List<PlayerGame> playerGameList;
+    private final String owner;
     private final List<PlayRound> playRoundList;
     private final String status; // opened, running, ended,
     private final int roundTime; // seconds
 
 
-    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") PlayerGame owner, @JsonProperty("playerGameList") List<PlayerGame> playerGameList, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") String owner, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
         this.id = id;
         this.game = game;
         this.name = name;
@@ -36,7 +35,6 @@ public class PlayGame {
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
         this.endDate = endDate != null ? (Date) endDate.clone() : null;
         this.owner = owner;
-        this.playerGameList = playerGameList;
         this.playRoundList = playRoundList;
         this.status = status;
         this.roundTime = roundTime;
@@ -58,12 +56,8 @@ public class PlayGame {
         return creationDate != null ? (Date) creationDate.clone() : null;
     }
 
-    public PlayerGame getOwner() {
+    public String getOwner() {
         return owner;
-    }
-
-    public List<PlayerGame> getPlayerGameList() {
-        return playerGameList;
     }
 
     public String getStatus() {

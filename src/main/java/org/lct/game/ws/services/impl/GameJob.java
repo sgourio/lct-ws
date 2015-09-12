@@ -2,6 +2,7 @@ package org.lct.game.ws.services.impl;
 
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.Round;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
@@ -40,7 +41,10 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         DateTime atTime = new DateTime(context.getFireTime());
         PlayGame playGame = playGameService.getPlayGame(playGameId);
-        DateTime playGameEndDate = new DateTime(playGame.getEndDate());
+        DateTime playGameEndDate = new DateTime(playGame.getEndDate())  ;
+        playGameService.updateScores(playGame);
+        GameScore gameScore = playGameService.getScores(playGame, atTime);
+        this.eventService.publishScores(playGame, gameScore);
         boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
         if ( isFinished) {
             playGameService.endGame(playGame);
@@ -52,7 +56,6 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
             }
         } else {
             Round round = playGameService.getRound(playGame, atTime);
-            logger.info(playGame + " round " + round);
             if (round != null) {
                 if (round.getRoundNumber() == 1) {
                     playGame = playGameService.startPlayGame(playGame);
@@ -60,6 +63,8 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
                 }
                 this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
             }
+            logger.info("Game " + playGame + ", round " + round);
+
             this.eventService.publishRound(playGame, round);
         }
     }

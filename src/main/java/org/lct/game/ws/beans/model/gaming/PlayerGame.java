@@ -3,20 +3,35 @@ package org.lct.game.ws.beans.model.gaming;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 
+import java.util.List;
+
 /**
- * A player of a game. His score is the taotal score for the game
+ * A player of a game. His score is the total score for the game
  * Created by sgourio on 14/08/15.
  */
 public class PlayerGame {
 
+    @Id
+    private String id;
     private final String userId;
+    private final String playGameId;
     private final String name;
-    private final int score;
+    private final int score; // global
 
-    public PlayerGame(@JsonProperty("userId") String userId, @JsonProperty("name") String name, @JsonProperty("score") int score) {
+    public PlayerGame(@JsonProperty("id") String id, @JsonProperty("userId") String userId, @JsonProperty("playGameId") String playGameId, @JsonProperty("name") String name, @JsonProperty("score") int score) {
+        this.id = id;
+        this.playGameId = playGameId;
         this.name = name;
         this.score = score;
         this.userId = userId;
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public String getPlayGameId() {
+        return playGameId;
     }
 
     public String getName() {

@@ -1,8 +1,9 @@
 package org.lct.game.ws.services;
 
-import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
+import org.lct.game.ws.beans.model.gaming.PlayerGame;
+import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.Round;
 
@@ -15,11 +16,13 @@ public interface EventService {
 
     public void registrerUser(User user);
 
-    public void joinGame(PlayGame playGame);
+    public void publishPlayers(PlayGame playGame, List<PlayerGame> players);
 
     public void publishTimer(PlayGame playGame, long countDown);
 
     public void publishRound(PlayGame playGame, Round round);
 
     public void publishMetaData(PlayGameMetaBean playGameMetaBean);
+
+    public void publishScores(PlayGame playGame, GameScore gameScore);
 }

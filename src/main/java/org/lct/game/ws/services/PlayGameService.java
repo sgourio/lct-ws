@@ -7,10 +7,9 @@ import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
+import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.WordResult;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Date;
 import java.util.List;
@@ -38,7 +37,7 @@ public interface PlayGameService {
      * @param startDate
      * @return
      */
-    public PlayGame setUpGame(final PlayGame playGame, final Date startDate);
+    public PlayGame setUpGame(final PlayGame playGame, final DateTime startDate);
 
     /**
      * Start a game
@@ -111,7 +110,7 @@ public interface PlayGameService {
      * @param playGameId
      * @return
      */
-    public List<PlayerGame> getPlayerGameList(String playGameId);
+    public List<PlayerGame> getPlayerListForGame(String playGameId);
 
     /**
      * Get PlayGame by id
@@ -150,4 +149,10 @@ public interface PlayGameService {
     public void updateTimers();
 
     public WordResult word(User user, String playGameId, DateTime atTime, String wordReference, Dictionary dictionary);
+
+    public GameScore getScores(PlayGame playGame, DateTime atTime);
+
+    public void updateScores(PlayGame playGame);
+
+
 }

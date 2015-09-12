@@ -19,8 +19,7 @@ public class PlayGameBuilder {
     private String name;
     private Date creationDate;
     private Date startDate;
-    private PlayerGame owner;
-    private List<PlayerGame> playerGameList;
+    private String owner;
     private List<PlayRound> playRoundList;
     private String status;
     private int roundTime;
@@ -35,7 +34,6 @@ public class PlayGameBuilder {
         this.creationDate = playGame.getCreationDate() != null ? new Date(playGame.getCreationDate().getTime()) : null;
         this.startDate = playGame.getStartDate() != null ? new Date(playGame.getStartDate().getTime()) : null;
         this.owner = playGame.getOwner();
-        this.playerGameList = new ArrayList<>(playGame.getPlayerGameList());
         this.playRoundList = new ArrayList<>(playGame.getPlayRoundList());
         this.status = playGame.getStatus();
         this.roundTime = playGame.getRoundTime();
@@ -56,13 +54,8 @@ public class PlayGameBuilder {
         return this;
     }
 
-    public PlayGameBuilder setOwner(PlayerGame owner) {
+    public PlayGameBuilder setOwner(String owner) {
         this.owner = owner;
-        return this;
-    }
-
-    public PlayGameBuilder setPlayerGameList(List<PlayerGame> playerGameList) {
-        this.playerGameList = playerGameList;
         return this;
     }
 
@@ -88,7 +81,7 @@ public class PlayGameBuilder {
 
     public PlayGame createPlayGame() {
         Date endDate = startDate != null ? new DateTime(startDate).plusSeconds(roundTime * playRoundList.size()).toDate() : null;
-        return new PlayGame(id, game, name, creationDate, startDate, endDate, owner, playerGameList, playRoundList, status, roundTime);
+        return new PlayGame(id, game, name, creationDate, startDate, endDate, owner, playRoundList, status, roundTime);
     }
 
 
