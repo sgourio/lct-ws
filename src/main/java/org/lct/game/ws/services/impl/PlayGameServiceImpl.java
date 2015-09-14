@@ -547,7 +547,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         for(PlayerGame playerGame : playerGameList){
             PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), roundNumber);
             if(playerRound != null ) {
-                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerRound.getName(), playerGame.getScore(), playerRound.getWord(), (int) (playerRound.getScore() / playRound.getScore()) * 10000);
+                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerRound.getName(), playerGame.getScore(), playerRound.getWord(), (int) (((double) playerGame.getScore() / playRound.getScore()) * 10000));
                 playerGameScoreList.add(playerGameScore);
             }
         }
