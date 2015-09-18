@@ -47,8 +47,8 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
         this.eventService.publishScores(playGame, gameScore);
         boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
         if ( isFinished) {
-            playGameService.endGame(playGame);
-            this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));
+            PlayGame endedGame = playGameService.endGame(playGame);
+            this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(endedGame));
             try {
                 context.getScheduler().interrupt(context.getFireInstanceId());
             } catch (UnableToInterruptJobException e) {
@@ -61,6 +61,7 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
                     playGame = playGameService.startPlayGame(playGame);
                     this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));
                 }
+                logger.info("update timer " + playGameService.getTimer(playGame));
                 this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
             }
             logger.info("Game " + playGame + ", round " + round);

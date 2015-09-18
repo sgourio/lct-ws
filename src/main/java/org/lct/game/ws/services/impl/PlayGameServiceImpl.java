@@ -102,6 +102,7 @@ public class PlayGameServiceImpl implements PlayGameService {
 
             startedGame = playGameRepository.save(startedGame);
             this.eventService.publishMetaData(getPlayGameMetaBean(startedGame));
+            this.eventService.publishTimer(startedGame, getTimer(startedGame));
             scheduleGame(startedGame);
             return startedGame;
         }else{
@@ -134,7 +135,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             if( playGame.getStartDate().after(new Date())){
                 triggerBuilder.startAt(playGame.getStartDate());
             }else{
-                triggerBuilder.startNow();
+                triggerBuilder.startAt(getRound(playGame, currentRoundNumber).getEndDate());
             }
             Trigger trigger = triggerBuilder.withSchedule(scheduleBuilder).build();
             Scheduler scheduler = schedulerFactoryBean.getScheduler();
