@@ -132,6 +132,10 @@ public class GameServiceImpl implements GameService{
             if( !roundIterator.hasNext() && !isGameFinish(deck, resultDraw)){
                 throw new IncompleteGameException("The game is not finished at round " + roundNumber);
             }
+
+            for( Tile tile : resultDraw){
+                deck.add(tile);
+            }
         }
 
         return true;
@@ -141,7 +145,7 @@ public class GameServiceImpl implements GameService{
     private boolean isGameFinish(List<Tile> deck, List<Tile> draw){
         List<Tile> totalList = new ArrayList<Tile>(deck);
         totalList.addAll(draw);
-        return totalList.size() <= 1 || isOnlyConsonants(totalList) || isOnlyVowels(totalList);
+        return (totalList.size() <= 1 || isOnlyConsonants(totalList) || isOnlyVowels(totalList)) && !isYOrWildcardInTiles(totalList);
     }
 
     /**
@@ -174,6 +178,15 @@ public class GameServiceImpl implements GameService{
             }
         }
         return onlyConsonants;
+    }
+
+    public boolean isYOrWildcardInTiles(List<Tile> tileList){
+        for( Tile tile : tileList){
+            if( tile.isConsonant() && tile.isVowel() ){
+                return true;
+            }
+        }
+        return false;
     }
 
     public Game generate(){
