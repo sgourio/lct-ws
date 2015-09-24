@@ -61,6 +61,7 @@ public interface PlayGameService {
      */
     public org.lct.game.ws.beans.view.Round getRound(PlayGame playGame, DateTime atTime);
 
+    public org.lct.game.ws.beans.view.Round getEndedRound(PlayGame playGame);
     /**
      * Get a round of playGame by its number
      * @param playGame PlayGame

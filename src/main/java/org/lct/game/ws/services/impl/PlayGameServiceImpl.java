@@ -211,6 +211,9 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     @Override
     public org.lct.game.ws.beans.view.Round getRound(PlayGame playGame, DateTime atTime){
+        if( playGame.getEndDate().before(atTime.toDate()) ){
+            return getEndedRound(playGame);
+        }
         return getRound(playGame, getRoundNumber(playGame, atTime));
     }
 
@@ -222,6 +225,30 @@ public class PlayGameServiceImpl implements PlayGameService {
         Duration duration = new Duration(startedDateTime, atTime);
         int round = ((int) duration.getStandardSeconds() / playGame.getRoundTime()) + 1;
         return Math.min(round, playGame.getPlayRoundList().size());
+    }
+
+    @Override
+    public org.lct.game.ws.beans.view.Round getEndedRound(PlayGame playGame){
+        BoardGameTemplate boardGameTemplate = new BoardGameTemplate(BoardGameTemplateEnum.classic.getSquares());
+        BoardGame boardGame = new BoardGame(boardGameTemplate);
+        int nbRounds = playGame.getGame().getRoundList().size();
+        for( int i = 0; i < nbRounds ; i++) {
+            boardGame = boardGame.dropWord(playGame.getGame().getRoundList().get(i).getDroppedWord());
+        }
+
+        List<DroppedTile> draw = new ArrayList<DroppedTile>();
+        Round lastRound = playGame.getGame().getRoundList().get(nbRounds -1);
+
+        for( Tile tile : lastRound.getDraw()){
+
+            draw.add(new DroppedTile(tile, tile.getValue()));
+        }
+        for( Square square : lastRound.getDroppedWord().getSquareList()){
+            if( square.isJustDropped() ) {
+                draw.remove(square.getDroppedTile());
+            }
+        }
+        return new org.lct.game.ws.beans.view.Round(playGame.getId(), -1, boardGame, draw, null, null, lastRound.getDroppedWord());
     }
 
     @Override
