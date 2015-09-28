@@ -78,14 +78,14 @@ public class Application {
         return new SchedulerFactoryBean();
     }
 
-    @Bean
-    public FilterRegistrationBean filterRegistrationBean() {
-        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
-        WSSimpleCORSFilter corsFilter = new WSSimpleCORSFilter();
-        registrationBean.setFilter(corsFilter);
-        registrationBean.setOrder(-101);
-        return registrationBean;
-    }
+//    @Bean
+//    public FilterRegistrationBean filterRegistrationBean() {
+//        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+//        WSSimpleCORSFilter corsFilter = new WSSimpleCORSFilter();
+//        registrationBean.setFilter(corsFilter);
+//        registrationBean.setOrder(-101);
+//        return registrationBean;
+//    }
 
     @Bean
     public FilterRegistrationBean authenticationFilterBean() {
