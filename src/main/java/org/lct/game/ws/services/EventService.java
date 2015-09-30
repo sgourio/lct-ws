@@ -25,4 +25,8 @@ public interface EventService {
     public void publishMetaData(PlayGameMetaBean playGameMetaBean);
 
     public void publishScores(PlayGame playGame, GameScore gameScore);
+
+    public void addChatMessage(User user, String message, String chatId);
+
+    public void publishChat(String chatId);
 }

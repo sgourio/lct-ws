@@ -49,6 +49,9 @@ public class LCTWSConfiguration {
     @Autowired
     private PlayerRoundRepository playerRoundRepository;
 
+    @Autowired
+    private ChatRepository chatRepository;
+
     @Bean
     public GameService gameService(){
         return new GameServiceImpl(gameRepository, boardService, dictionaryService);
@@ -61,7 +64,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository);
     }
 
 }

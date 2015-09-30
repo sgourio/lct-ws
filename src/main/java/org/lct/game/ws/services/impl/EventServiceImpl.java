@@ -1,12 +1,15 @@
 package org.lct.game.ws.services.impl;
 
 import org.joda.time.DateTime;
+import org.lct.game.ws.beans.model.Chat;
+import org.lct.game.ws.beans.model.ChatMessage;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
+import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.services.EventService;
 import org.slf4j.Logger;
@@ -30,6 +33,9 @@ public class EventServiceImpl implements EventService {
     private ConnectedUserRepository connectedUserRepository;
 
     @Autowired
+    private ChatRepository chatRepository;
+
+    @Autowired
     private SimpMessagingTemplate messagingTemplate;
 
     private static String gamerList = "/topic/gamerList";
@@ -38,6 +44,7 @@ public class EventServiceImpl implements EventService {
     private static String timer = "/topic/game/:gameId/timer";
     private static String metadata = "/topic/game/:gameId/metadata";
     private static String scores = "/topic/game/:gameId/scores";
+    private static String chat = "/topic/chat/:chatId";
 
     private Set<String> alreadyConnect;
     private Set<User> userToConnect;
@@ -116,6 +123,21 @@ public class EventServiceImpl implements EventService {
     public void publishScores(PlayGame playGame, GameScore gameScore){
         logger.info("Publish score " + playGame.getName());
         messagingTemplate.convertAndSend(scores.replace(":gameId" ,playGame.getId()), gameScore);
+    }
+
+    @Override
+    public void addChatMessage(User user, String message, String chatId){
+        Chat chat = chatRepository.findOne(chatId);
+        if( chat != null ) {
+            chat.getChatMessageList().add(new ChatMessage(user.getName(), new Date(), message));
+            chatRepository.save(chat);
+        }
+    }
+
+    @Override
+    public void publishChat(String chatId){
+        Chat chat = chatRepository.findOne(chatId);
+        messagingTemplate.convertAndSend(EventServiceImpl.chat.replace(":chatId" ,chatId), chat);
     }
 
 }

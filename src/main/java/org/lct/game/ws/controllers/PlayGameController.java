@@ -2,12 +2,14 @@ package org.lct.game.ws.controllers;
 
 import org.joda.time.DateTime;
 import org.lct.dictionary.beans.Dictionary;
+import org.lct.game.ws.beans.model.Chat;
 import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.*;
+import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
@@ -38,6 +40,9 @@ public class PlayGameController {
 
     @Autowired
     private EventService eventService;
+
+    @Autowired
+    private ChatRepository chatRepository;
 
     /**
      * Open a game for playing ( the game is not started yet, but it is available to enter in )
@@ -196,6 +201,24 @@ public class PlayGameController {
         DateTime callDate = DateTime.now();
         PlayGame playGame = playGameService.getPlayGame(playGameId);
         return playGameService.getScores(playGame, callDate);
+    }
+
+
+
+    @RequestMapping(value="/chat/{id}", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String writeChat(@PathVariable("id") String chatId, @RequestBody String message, @ModelAttribute User user){
+        eventService.addChatMessage(user, message, chatId);
+        eventService.publishChat(chatId);
+        return chatId;
+    }
+
+    @RequestMapping(value="/chat/{id}", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public Chat getChat(@PathVariable("id") String chatId){
+        return chatRepository.findOne(chatId);
     }
 
 //    public String retest(){

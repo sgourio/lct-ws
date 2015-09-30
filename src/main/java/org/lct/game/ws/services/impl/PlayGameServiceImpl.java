@@ -9,19 +9,13 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.lct.dictionary.beans.Dictionary;
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.beans.PlayGameStatus;
-import org.lct.game.ws.beans.model.ConnectedUserBean;
-import org.lct.game.ws.beans.model.Game;
-import org.lct.game.ws.beans.model.Round;
-import org.lct.game.ws.beans.model.User;
+import org.lct.game.ws.beans.model.*;
 import org.lct.game.ws.beans.model.gaming.*;
 import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.Word;
 import org.lct.game.ws.beans.view.WordResult;
-import org.lct.game.ws.dao.ConnectedUserRepository;
-import org.lct.game.ws.dao.PlayGameRepository;
-import org.lct.game.ws.dao.PlayerRepository;
-import org.lct.game.ws.dao.PlayerRoundRepository;
+import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
@@ -55,8 +49,9 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final DictionaryService dictionaryService;
     private final PlayerRepository playerRepository;
     private final PlayerRoundRepository playerRoundRepository;
+    private final ChatRepository chatRepository;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
@@ -65,6 +60,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         this.dictionaryService = dictionaryService;
         this.playerRepository = playerRepository;
         this.playerRoundRepository = playerRoundRepository;
+        this.chatRepository = chatRepository;
     }
 
     @Override
@@ -88,6 +84,9 @@ public class PlayGameServiceImpl implements PlayGameService {
                 .setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
         logger.info("Game '" + name + "'opened by " + user);
+        Chat chat = new Chat(playGame.getId(), startDate, new ArrayList<ChatMessage>());
+        chatRepository.save(chat);
+
         joinGame(playGame.getId(), user);
         return playGame;
     }
