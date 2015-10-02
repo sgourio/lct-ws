@@ -12,6 +12,9 @@
 
 package org.lct.game.ws;
 
+import org.lct.game.ws.beans.model.Chat;
+import org.lct.game.ws.beans.model.ChatMessage;
+import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.dao.UserRepository;
 import org.lct.game.ws.filters.AdminFilter;
 import org.lct.game.ws.filters.AuthenticationFilter;
@@ -38,7 +41,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import javax.annotation.PostConstruct;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
 
 @SpringBootApplication
 @EnableScheduling
@@ -64,10 +70,24 @@ public class Application {
     @Autowired
     private PlayGameService playGameService;
 
+    @Autowired
+    private ChatRepository chatRepository;
+
     @PostConstruct
     private void initRunningGames(){
         logger.info("schedules running games");
         playGameService.scheduleAllRunningGames();
+    }
+
+    @PostConstruct
+    private void initChatRoom(){
+        Chat chat = chatRepository.findOne("1");
+        if( chat == null ){
+            List<ChatMessage> chatMessageList = new ArrayList<ChatMessage>();
+            chatMessageList.add(new ChatMessage("Sylvain & Aude", new Date(), "Bienvenue sur LCT, passez un bon moment, un moment scrabblesque!"));
+            chat = new Chat("1", new Date(), chatMessageList);
+            chatRepository.save(chat);
+        }
     }
 
     @Value("${admin}")
