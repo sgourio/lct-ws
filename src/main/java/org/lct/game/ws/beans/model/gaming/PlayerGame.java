@@ -9,7 +9,7 @@ import java.util.List;
  * A player of a game. His score is the total score for the game
  * Created by sgourio on 14/08/15.
  */
-public class PlayerGame {
+public class PlayerGame implements Comparable<PlayerGame> {
 
     @Id
     private String id;
@@ -61,5 +61,10 @@ public class PlayerGame {
     @Override
     public int hashCode() {
         return userId != null ? userId.hashCode() : 0;
+    }
+
+    @Override
+    public int compareTo(PlayerGame o) {
+        return Integer.valueOf(o.getScore()).compareTo(this.score);
     }
 }

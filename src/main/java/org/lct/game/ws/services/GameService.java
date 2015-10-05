@@ -79,4 +79,9 @@ public interface GameService {
      */
     public GameMetaBean gameToGameMeta(Game game);
 
+    /**
+     * Start automatic game builder.
+     */
+    public void automaticGameBuilder();
+
 }

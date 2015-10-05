@@ -50,8 +50,9 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final PlayerRepository playerRepository;
     private final PlayerRoundRepository playerRoundRepository;
     private final ChatRepository chatRepository;
+    private final MonthlyScoreRepository monthlyScoreRepository;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository, MonthlyScoreRepository monthlyScoreRepository) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
@@ -61,6 +62,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         this.playerRepository = playerRepository;
         this.playerRoundRepository = playerRoundRepository;
         this.chatRepository = chatRepository;
+        this.monthlyScoreRepository = monthlyScoreRepository;
     }
 
     @Override
@@ -122,7 +124,61 @@ public class PlayGameServiceImpl implements PlayGameService {
         PlayGameBuilder playGameBuilder = new PlayGameBuilder(playGame);
         playGameBuilder.setStatus(PlayGameStatus.ended.getId());
         PlayGame endedGame = playGameBuilder.createPlayGame();
-        return playGameRepository.save(endedGame);
+        endedGame = playGameRepository.save(endedGame);
+        updateMonthlyScores(endedGame);
+        return endedGame;
+    }
+
+    public void updateMonthlyScores(PlayGame playGame){
+        int minPoints = 10;
+        List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
+        Collections.sort(playerGameList);
+        int nbPlayers = 0;
+        for( PlayerGame playerGame : playerGameList){
+            if( playerGame.getScore() >= minPoints){
+                nbPlayers++;
+            }else{
+                break;
+            }
+        }
+        if( nbPlayers > 0 ) {
+            double coefficient = 1.5;
+            double maxPoints = nbPlayers * coefficient;
+            int position = 0;
+            int lastScore = -1; // deal with exaequo
+
+            DateTime gameDate = new DateTime(playGame.getStartDate());
+
+            PlayRound playRound = playGame.getPlayRoundList().get(playGame.getPlayRoundList().size() - 1);
+            for (PlayerGame playerGame : playerGameList) {
+                if (playerGame.getScore() >= minPoints) {
+                    PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), 1);
+                    boolean hasPlayedFirstRound = playerRound != null && playerRound.getScore() > 0;
+                    if (playerGame.getScore() != lastScore) {
+                        position++;
+                    }
+                    lastScore = playerGame.getScore();
+
+                    int points = (int) Math.round(maxPoints - coefficient * (position - 1));
+
+                    int percent = hasPlayedFirstRound ? (int) (((double) playerGame.getScore() / playRound.getScore()) * 10000) : 0;
+                    MonthlyScoreGame monthlyScoreGame = new MonthlyScoreGame(playerGame.getName(), playerGame.getPlayGameId(), playGame.getStartDate(), points, percent, position, playerGame.getScore(), playRound.getScore());
+
+                    MonthlyScore monthlyScore = monthlyScoreRepository.findByUserIdAndYearAndMonth(playerGame.getUserId(), gameDate.getYear(), gameDate.getMonthOfYear());
+                    List<MonthlyScoreGame> monthlyScoreGameList = new ArrayList<MonthlyScoreGame>();
+                    String id = null;
+                    if (monthlyScore != null) {
+                        monthlyScoreGameList = monthlyScore.getMonthlyScoreGameList();
+                        id = monthlyScore.getId();
+                    }
+                    monthlyScoreGameList.add(monthlyScoreGame);
+                    monthlyScore = new MonthlyScore(id, gameDate.getYear(), gameDate.getMonthOfYear(), playerGame.getName(), playerGame.getUserId(), monthlyScoreGameList);
+                    monthlyScoreRepository.save(monthlyScore);
+                }
+            }
+
+        }
+
     }
 
     public void scheduleGame(final PlayGame playGame){
@@ -368,7 +424,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return nbDropped == 7;
     }
 
-    public WordResult result(List<DroppedWord> droppedWordList, Dictionary dictionary){
+    public WordResult result(Round round, List<DroppedWord> droppedWordList, Dictionary dictionary){
         List<Word> subWordList = new ArrayList<>();
         DroppedWord mainDroppedWord = droppedWordList.get(0);
         boolean valid = boardService.isValid(dictionaryService, dictionary, mainDroppedWord.getSquareList());
@@ -385,10 +441,25 @@ public class PlayGameServiceImpl implements PlayGameService {
             }
         }
 
+        if( !checkLettersFromDraw(round, mainDroppedWord)){
+            validTurn = false;
+        }
+
         if(!validTurn){
             total = 0;
         }
         return new WordResult(mainWord, total, subWordList);
+    }
+
+    private boolean checkLettersFromDraw(Round round, DroppedWord droppedWord){
+        for( Square square : droppedWord.getSquareList()){
+            if( square.isJustDropped() ){
+                if( !round.getDraw().contains(square.getDroppedTile().getTile()) ){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
 
@@ -452,7 +523,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
             BoardGame boardGame = round.getBoardGame();
             List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
-            wordResult = result(droppedWordList, dictionary);
+            wordResult = result(playGame.getGame().getRoundList().get(round.getRoundNumber() - 1), droppedWordList, dictionary);
             if( wordResult.getTotal() > 0) {
                 PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
                 if( lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints() ) {

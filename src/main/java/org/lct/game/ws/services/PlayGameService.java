@@ -155,5 +155,9 @@ public interface PlayGameService {
 
     public void updateScores(PlayGame playGame);
 
-
+    /**
+     * Update month score
+     * @param playGame
+     */
+    public void updateMonthlyScores(PlayGame playGame);
 }

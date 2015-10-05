@@ -11,9 +11,11 @@ import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
+import org.lct.game.ws.services.ScoreService;
 import org.lct.game.ws.services.impl.EventServiceImpl;
 import org.lct.game.ws.services.impl.GameServiceImpl;
 import org.lct.game.ws.services.impl.PlayGameServiceImpl;
+import org.lct.game.ws.services.impl.ScoreServiceImpl;
 import org.lct.gameboard.ws.services.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -52,9 +54,12 @@ public class LCTWSConfiguration {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private MonthlyScoreRepository monthlyScoreRepository;
+
     @Bean
     public GameService gameService(){
-        return new GameServiceImpl(gameRepository, boardService, dictionaryService);
+        return new GameServiceImpl(gameRepository, boardService, dictionaryService, schedulerFactoryBean);
     }
 
     @Bean
@@ -64,7 +69,12 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository);
+    }
+
+    @Bean
+    public ScoreService scoreService(){
+        return new ScoreServiceImpl(monthlyScoreRepository);
     }
 
 }

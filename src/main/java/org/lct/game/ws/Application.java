@@ -20,6 +20,7 @@ import org.lct.game.ws.filters.AdminFilter;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.filters.WSSimpleCORSFilter;
 import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +74,9 @@ public class Application {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private GameService gameService;
+
     @PostConstruct
     private void initRunningGames(){
         logger.info("schedules running games");
@@ -88,6 +92,12 @@ public class Application {
             chat = new Chat("1", new Date(), chatMessageList);
             chatRepository.save(chat);
         }
+    }
+
+    @PostConstruct
+    private void initGameBuilder(){
+        logger.info("schedules game builder");
+        this.gameService.automaticGameBuilder();
     }
 
     @Value("${admin}")

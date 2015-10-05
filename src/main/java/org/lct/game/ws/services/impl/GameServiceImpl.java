@@ -6,6 +6,7 @@
 
 package org.lct.game.ws.services.impl;
 
+import org.joda.time.DateTime;
 import org.lct.dictionary.beans.Dictionary;
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.beans.model.Game;
@@ -26,9 +27,11 @@ import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
 import org.lct.gameboard.ws.services.impl.DeckTemplateEnum;
 import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
+import org.quartz.impl.triggers.SimpleTriggerImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 
 import java.util.*;
 
@@ -45,10 +48,13 @@ public class GameServiceImpl implements GameService{
 
     private final DictionaryService dictionaryService;
 
-    public GameServiceImpl(GameRepository gameRepository, BoardService boardService, DictionaryService dictionaryService) {
+    private final SchedulerFactoryBean schedulerFactoryBean;
+
+    public GameServiceImpl(GameRepository gameRepository, BoardService boardService, DictionaryService dictionaryService, SchedulerFactoryBean schedulerFactoryBean) {
         this.gameRepository = gameRepository;
         this.boardService = boardService;
         this.dictionaryService = dictionaryService;
+        this.schedulerFactoryBean = schedulerFactoryBean;
     }
 
     @Override
@@ -325,5 +331,36 @@ public class GameServiceImpl implements GameService{
             maxScore += round.getDroppedWord().getPoints();
         }
         return new GameMetaBean(game.getId(), game.getName(), game.getAuthorName(), game.getRoundList().size(), maxScore);
+    }
+
+
+    @Override
+    public void automaticGameBuilder(){
+        JobDetail jobDetail = buildJobDetail();
+        ScheduleBuilder scheduleBuilder = DailyTimeIntervalScheduleBuilder
+                .dailyTimeIntervalSchedule()
+                .onEveryDay()
+                .withIntervalInSeconds(1)
+                .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(3, 30))
+                .endingDailyAt(TimeOfDay.hourAndMinuteOfDay(5, 30));
+        TriggerBuilder triggerBuilder =  TriggerBuilder.newTrigger();
+        triggerBuilder.startNow();
+        Trigger trigger = triggerBuilder.withSchedule(scheduleBuilder).build();
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        try {
+            if (!scheduler.isStarted()) {
+                scheduler.start();
+            }
+            scheduler.scheduleJob(jobDetail, trigger);
+        } catch (SchedulerException e) {
+            logger.error("", e);
+        }
+    }
+
+    private JobDetail buildJobDetail(){
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("gameService", this);
+        JobDetail jobDetail = JobBuilder.newJob(AutoCreateGameJob.class).setJobData(jobDataMap).build();
+        return jobDetail;
     }
 }
