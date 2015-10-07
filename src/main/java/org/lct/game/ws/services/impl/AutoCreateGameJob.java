@@ -30,7 +30,7 @@ public class AutoCreateGameJob  extends QuartzJobBean  {
             running = true;
             Game game = gameService.generate();
             GameMetaBean gameMetaBean = gameService.gameToGameMeta(game);
-            logger.info("Game create: " + gameMetaBean.getName() + " : " + gameMetaBean.getRounds() + " rounds " + gameMetaBean.getMaxScore() + " pts");
+            logger.info("Game created: " + gameMetaBean.getName() + " : " + gameMetaBean.getRounds() + " rounds " + gameMetaBean.getMaxScore() + " pts");
             running = false;
         }
     }

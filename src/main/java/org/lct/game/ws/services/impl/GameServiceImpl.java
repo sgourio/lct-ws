@@ -340,7 +340,7 @@ public class GameServiceImpl implements GameService{
         ScheduleBuilder scheduleBuilder = DailyTimeIntervalScheduleBuilder
                 .dailyTimeIntervalSchedule()
                 .onEveryDay()
-                .withIntervalInSeconds(1)
+                .withIntervalInSeconds(5)
                 .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(3, 30))
                 .endingDailyAt(TimeOfDay.hourAndMinuteOfDay(5, 30));
         TriggerBuilder triggerBuilder =  TriggerBuilder.newTrigger();
