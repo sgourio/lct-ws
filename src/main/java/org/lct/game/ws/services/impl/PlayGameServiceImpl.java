@@ -598,6 +598,9 @@ public class PlayGameServiceImpl implements PlayGameService {
     public GameScore getScores(PlayGame playGame, DateTime atTime){
         int roundNumber = getRoundNumber(playGame, atTime);
         if( roundNumber > 1) {
+            if( playGame.getEndDate().before(atTime.toDate()) ){
+                return getScore(roundNumber, playGame);
+            }
             return getScore(roundNumber - 1, playGame);
         }else{
             // empty scores
