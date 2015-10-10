@@ -10,6 +10,7 @@ import org.lct.game.ws.beans.model.Game;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,4 +21,5 @@ public interface GameRepository extends MongoRepository<Game, String> {
     public List<Game> findByAuthorId(String authorId);
     public List<Game> findByAuthorId(String authorId, Pageable pageable);
     public Long countByAuthorId(String authorId);
+    public List<Game> findByAuthorIdAndCreationDateAfter(String authorId, Date creationDate);
 }

@@ -9,6 +9,7 @@ package org.lct.game.ws.beans.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -25,13 +26,15 @@ public class Game {
     private final String authorId;
     private final String authorName;
     private final List<Round> roundList;
+    private final Date creationDate;
 
-    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList, @JsonProperty("authorId") String authorId, @JsonProperty("authorName") String authorName) {
+    public Game(@JsonProperty("name") String name, @JsonProperty("lang") String lang, @JsonProperty("roundList") List<Round> roundList, @JsonProperty("authorId") String authorId, @JsonProperty("authorName") String authorName, @JsonProperty("creationDate") Date creationDate) {
         this.name = name;
         this.lang = lang;
         this.roundList = roundList;
         this.authorId = authorId;
         this.authorName = authorName;
+        this.creationDate = creationDate;
     }
 
     public String getName() {
@@ -61,5 +64,9 @@ public class Game {
     @Override
     public String toString() {
         return name;
+    }
+
+    public Date getCreationDate() {
+        return creationDate;
     }
 }

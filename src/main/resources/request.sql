@@ -1,0 +1,1 @@
+db.game.update({},{$set:{"creationDate": new Date()}},{multi:true});

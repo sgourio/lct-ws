@@ -55,7 +55,7 @@ public class PlayGameController {
     @ResponseBody
     public String openGame(@RequestBody PreparedGame preparedGame, @ModelAttribute User user){
         Game game = gameService.getById(preparedGame.getGameId());
-        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), null, user);
+        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user);
         return playGame.getId();
     }
 

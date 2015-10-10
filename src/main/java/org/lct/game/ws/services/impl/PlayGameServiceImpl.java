@@ -3,6 +3,7 @@ package org.lct.game.ws.services.impl;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeComparator;
 import org.joda.time.Duration;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -66,7 +67,19 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
-    public PlayGame openGame(Game game, String name, int roundTime, Date startDate, User user) {
+    public PlayGame openGame(Game game, String name, int roundTime, User user) {
+        PlayGame playGame = openGame(game, name, roundTime, user.getName());
+        joinGame(playGame.getId(), user);
+        return playGame;
+    }
+
+    @Override
+    public PlayGame openAutoGame(Game game, String name, int roundTime) {
+        PlayGame playGame = openGame(game, name, roundTime, "auto");
+        return playGame;
+    }
+
+    private PlayGame openGame(Game game, String name, int roundTime, String owner) {
         List<PlayRound> playRoundList = new ArrayList<>(game.getRoundList().size());
         int total = 0;
         for( Round round : game.getRoundList()){
@@ -79,17 +92,14 @@ public class PlayGameServiceImpl implements PlayGameService {
                 .setGame(game)
                 .setName(name)
                 .setCreationDate(new Date())
-                .setStartDate(startDate)
-                .setOwner(user.getName())
+                .setOwner(owner)
                 .setPlayRoundList(playRoundList)
                 .setStatus(PlayGameStatus.opened.getId())
                 .setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
-        logger.info("Game '" + name + "'opened by " + user);
-        Chat chat = new Chat(playGame.getId(), startDate, new ArrayList<ChatMessage>());
+        logger.info("Game '" + name + "'opened by " + owner);
+        Chat chat = new Chat(playGame.getId(), DateTime.now().toDate(), new ArrayList<ChatMessage>());
         chatRepository.save(chat);
-
-        joinGame(playGame.getId(), user);
         return playGame;
     }
 
@@ -148,8 +158,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             int lastScore = -1; // deal with exaequo
 
             DateTime gameDate = new DateTime(playGame.getStartDate());
-
-            PlayRound playRound = playGame.getPlayRoundList().get(playGame.getPlayRoundList().size() - 1);
+            PlayRound lastRound = playGame.getPlayRoundList().get(playGame.getPlayRoundList().size() - 1);
             for (PlayerGame playerGame : playerGameList) {
                 if (playerGame.getScore() >= minPoints) {
                     PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), 1);
@@ -161,8 +170,8 @@ public class PlayGameServiceImpl implements PlayGameService {
 
                     int points = (int) Math.round(maxPoints - coefficient * (position - 1));
 
-                    int percent = hasPlayedFirstRound ? (int) (((double) playerGame.getScore() / playRound.getScore()) * 10000) : 0;
-                    MonthlyScoreGame monthlyScoreGame = new MonthlyScoreGame(playerGame.getName(), playerGame.getPlayGameId(), playGame.getStartDate(), points, percent, position, playerGame.getScore(), playRound.getScore());
+                    int percent = hasPlayedFirstRound ? (int) (((double) playerGame.getScore() / lastRound.getScore()) * 10000) : 0;
+                    MonthlyScoreGame monthlyScoreGame = new MonthlyScoreGame(playerGame.getName(), playerGame.getPlayGameId(), playGame.getStartDate(), points, percent, position, playerGame.getScore(), lastRound.getScore(), hasPlayedFirstRound);
 
                     MonthlyScore monthlyScore = monthlyScoreRepository.findByUserIdAndYearAndMonth(playerGame.getUserId(), gameDate.getYear(), gameDate.getMonthOfYear());
                     List<MonthlyScoreGame> monthlyScoreGameList = new ArrayList<MonthlyScoreGame>();
@@ -230,6 +239,30 @@ public class PlayGameServiceImpl implements PlayGameService {
     public List<PlayGameMetaBean> getActualPlayGame(){
         List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.opened.getId());
         playGameList.addAll(playGameRepository.findByStatus(PlayGameStatus.running.getId()));
+        Collections.sort(playGameList, new Comparator<PlayGame>() {
+            @Override
+            public int compare(PlayGame o1, PlayGame o2) {
+                if( o1.getStatus().equals(PlayGameStatus.opened.getId()) && !o2.getStatus().equals(PlayGameStatus.opened.getId()) ){
+                    return 1;
+                }
+                if( o2.getStatus().equals(PlayGameStatus.opened.getId()) && !o1.getStatus().equals(PlayGameStatus.opened.getId())){
+                    return -1;
+                }
+                if( o1.getStatus().equals(PlayGameStatus.opened.getId()) && o2.getStatus().equals(PlayGameStatus.opened.getId())){
+                    if( o1.getStartDate() == null && o2.getStartDate() == null ){
+                        return 0;
+                    }
+                    if( o1.getStartDate() == null ){
+                        return 1;
+                    }
+                    if(o2.getStartDate() == null ){
+                        return -1;
+                    }
+                    return o1.getStartDate().compareTo(o2.getStartDate());
+                }
+                return Integer.valueOf(o1.getRoundTime()).compareTo( Integer.valueOf(o2.getRoundTime()) );
+            }
+        });
         return playGameToPlayGameMetaBean(playGameList);
     }
 
@@ -660,6 +693,19 @@ public class PlayGameServiceImpl implements PlayGameService {
         return playerRepository.findByPlayGameId(playGameId);
     }
 
-
+    @Override
+    public List<Game> getTodayGamesPlayed(){
+        DateTime today = DateTime.now();
+        if( today.getHourOfDay() < 6 ){
+            today = today.minusDays(1);
+        }
+        today = today.withTimeAtStartOfDay().withHourOfDay(6);
+        List<PlayGame> playGameList = playGameRepository.findByStartDateAfter(today.toDate());
+        List<Game> gameList = new ArrayList<Game>();
+        for( PlayGame playGame : playGameList ){
+            gameList.add(playGame.getGame());
+        }
+        return gameList;
+    }
 
 }

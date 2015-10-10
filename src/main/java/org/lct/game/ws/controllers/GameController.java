@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -56,7 +57,7 @@ public class GameController {
     public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws Exception{
         logger.info("Create game...");
         try {
-            gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName()));
+            gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName(), new Date()));
         }catch (Exception e){
             logger.error("",e);
             throw e;
@@ -77,7 +78,7 @@ public class GameController {
     @ResponseBody
     public void put(@PathVariable("lang") String lang, @PathVariable("id") String id, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException {
         logger.info("save game " + game.getName() +"...");
-        gameService.save(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName()));
+        gameService.save(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName(), new Date()));
     }
 
     /**

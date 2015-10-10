@@ -42,8 +42,10 @@ public class ScoreServiceImpl implements ScoreService{
             int topScore = 0;
             for(MonthlyScoreGame monthlyScoreGame : monthlyScore.getMonthlyScoreGameList()){
                 points += monthlyScoreGame.getPoints();
-                totalScore += monthlyScoreGame.getScore();
-                topScore += monthlyScoreGame.getTopScore();
+                if( monthlyScoreGame.isHasPlayedFirstRound() ) {
+                    totalScore += monthlyScoreGame.getScore();
+                    topScore += monthlyScoreGame.getTopScore();
+                }
             }
             int percent = (int) (((double) totalScore / topScore) * 10000);
 

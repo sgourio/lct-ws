@@ -24,12 +24,11 @@ public interface PlayGameService {
      * @param game game to open
      * @param name game name
      * @param roundTime time to play a round
-     * @param startDate game start date
      * @param user owner of the PlayGame
      * @return PlayGame with status opened
      */
-    public PlayGame openGame(Game game, String name, int roundTime, Date startDate, User user);
-
+    public PlayGame openGame(Game game, String name, int roundTime, User user);
+    public PlayGame openAutoGame(Game game, String name, int roundTime);
 
     /**
      * Set up a playGame by setting its start date
@@ -160,4 +159,6 @@ public interface PlayGameService {
      * @param playGame
      */
     public void updateMonthlyScores(PlayGame playGame);
+
+    public List<Game> getTodayGamesPlayed();
 }

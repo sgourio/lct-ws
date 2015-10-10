@@ -84,8 +84,13 @@ public class GameServiceImpl implements GameService{
     }
 
     @Override
+    public List<Game> getByAuthorIdAndCreationDateAfter(String authorId, DateTime creationDate) {
+        return this.gameRepository.findByAuthorIdAndCreationDateAfter(authorId, creationDate.toDate());
+    }
+
+    @Override
     public List<Game> getByAuthorId(String authorId, int max) {
-        int nbPage = (int) (this.gameRepository.countByAuthorId("auto") / max) - 1;
+        int nbPage = (int) (this.gameRepository.countByAuthorId(authorId) / max) - 1;
         if( nbPage < 0 ) nbPage = 0;
         int page = (int) Math.round( Math.random() * nbPage);
         return this.gameRepository.findByAuthorId(authorId, new PageRequest(page, max));
@@ -221,7 +226,7 @@ public class GameServiceImpl implements GameService{
             }
         }
         String name = "#" + this.gameRepository.count();
-        Game game = new Game(name, "fr", roundList,"auto", "auto");
+        Game game = new Game(name, "fr", roundList,"auto", "auto", new Date());
         this.gameRepository.insert(game);
         logger.info("Save new generated game named " + name);
         return game;
@@ -291,30 +296,6 @@ public class GameServiceImpl implements GameService{
             }
         }
         return true;
-    }
-
-    public void readyGame(Game game){
-
-
-        JobDataMap jobDataMap = new JobDataMap();
-        jobDataMap.put("test", "toto");
-        JobDetail jobDetail = JobBuilder.newJob(GameJob.class).setJobData(jobDataMap).build();
-        Trigger trigger1 = TriggerBuilder.newTrigger().startAt(DateBuilder.futureDate(10, DateBuilder.IntervalUnit.SECOND)).build();
-        Scheduler scheduler = null;
-        try {
-            scheduler = new StdSchedulerFactory().getScheduler();
-            scheduler.start();
-            scheduler.scheduleJob(jobDetail, trigger1);
-        } catch (SchedulerException e) {
-            e.printStackTrace();
-        }
-
-//
-//        SimpleTriggerFactoryBean simpleTriggerFactoryBean = new SimpleTriggerFactoryBean();
-//        SchedulerFactoryBean fb = new SchedulerFactoryBean();
-//        GameJob gameJob = new GameJob();
-//        JobDetail jobDetail = (JobDetail) gameJob;
-//        fb.setJobDetails(jobDetail);
     }
 
     public List<GameMetaBean> gameToGameMeta(List<Game> gameList){

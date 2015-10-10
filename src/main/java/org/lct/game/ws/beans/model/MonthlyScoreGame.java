@@ -14,16 +14,17 @@ import java.util.Date;
  * Created by sgourio on 03/10/15.
  */
 public class MonthlyScoreGame {
-    private String gameName;
-    private String gameId;
-    private Date gameDate;
-    private int points;
-    private int percentFromTop; // *100
-    private int position;
-    private int score;
-    private int topScore;
+    private final String gameName;
+    private final String gameId;
+    private final Date gameDate;
+    private final int points;
+    private final int percentFromTop; // *100
+    private final int position;
+    private final int score;
+    private final int topScore;
+    private final boolean hasPlayedFirstRound;
 
-    public MonthlyScoreGame( @JsonProperty("gameName") String gameName, @JsonProperty("gameId") String gameId, @JsonProperty("gameDate")  Date gameDate, @JsonProperty("points") int points, @JsonProperty("percentFromTop") int percentFromTop, @JsonProperty("position") int position, @JsonProperty int score, @JsonProperty int topScore) {
+    public MonthlyScoreGame( @JsonProperty("gameName") String gameName, @JsonProperty("gameId") String gameId, @JsonProperty("gameDate")  Date gameDate, @JsonProperty("points") int points, @JsonProperty("percentFromTop") int percentFromTop, @JsonProperty("position") int position, @JsonProperty("score") int score, @JsonProperty("topScore") int topScore, @JsonProperty("hasPlayedFirstRound") boolean hasPlayedFirstRound) {
         this.gameName = gameName;
         this.gameId = gameId;
         this.gameDate = gameDate;
@@ -32,6 +33,12 @@ public class MonthlyScoreGame {
         this.position = position;
         this.score = score;
         this.topScore = topScore;
+        this.hasPlayedFirstRound = hasPlayedFirstRound;
+
+    }
+
+    public boolean isHasPlayedFirstRound() {
+        return hasPlayedFirstRound;
     }
 
     public String getGameName() {

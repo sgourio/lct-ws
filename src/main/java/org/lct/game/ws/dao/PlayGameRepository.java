@@ -3,6 +3,7 @@ package org.lct.game.ws.dao;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -11,4 +12,6 @@ import java.util.List;
 public interface PlayGameRepository extends MongoRepository<PlayGame, String> {
 
     public List<PlayGame> findByStatus(String status);
+
+    public List<PlayGame> findByStartDateAfter(Date startDate);
 }

@@ -34,7 +34,7 @@ public class ScoreController {
     @RequestMapping(value="/ranking/{year}/{month}", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public MonthScoreBean getPlayGameMetaBean(@PathVariable("year") int year, @PathVariable("month") int month, @RequestParam(value="sort", required = false) String sort){
+    public MonthScoreBean getMonthScoreBean(@PathVariable("year") int year, @PathVariable("month") int month, @RequestParam(value="sort", required = false) String sort){
         return scoreService.getMonthScoreBean(year, month, sort);
     }
 }

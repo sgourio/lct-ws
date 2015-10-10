@@ -22,6 +22,8 @@ import org.lct.game.ws.filters.WSSimpleCORSFilter;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
+import org.lct.game.ws.services.impl.AutoGameLauncherJob;
+import org.quartz.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +79,9 @@ public class Application {
     @Autowired
     private GameService gameService;
 
+    @Autowired
+    private SchedulerFactoryBean schedulerFactoryBean;
+
     @PostConstruct
     private void initRunningGames(){
         logger.info("schedules running games");
@@ -98,6 +103,27 @@ public class Application {
     private void initGameBuilder(){
         logger.info("schedules game builder");
         this.gameService.automaticGameBuilder();
+    }
+
+    @PostConstruct
+    private void automaticGameLauncher(){
+        JobDataMap jobDataMap = new JobDataMap();
+        jobDataMap.put("playGameService", this.playGameService);
+        jobDataMap.put("gameService", this.gameService);
+        JobDetail jobDetail = JobBuilder.newJob(AutoGameLauncherJob.class).setJobData(jobDataMap).build();
+        ScheduleBuilder scheduleBuilder = SimpleScheduleBuilder.repeatMinutelyForever(5);
+        TriggerBuilder triggerBuilder =  TriggerBuilder.newTrigger();
+        triggerBuilder.startNow();
+        Trigger trigger = triggerBuilder.withSchedule(scheduleBuilder).build();
+        Scheduler scheduler = schedulerFactoryBean.getScheduler();
+        try {
+            if (!scheduler.isStarted()) {
+                scheduler.start();
+            }
+            scheduler.scheduleJob(jobDetail, trigger);
+        } catch (SchedulerException e) {
+            logger.error("", e);
+        }
     }
 
     @Value("${admin}")

@@ -7,6 +7,7 @@
 package org.lct.game.ws.services;
 
 
+import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.view.GameMetaBean;
 
@@ -54,16 +55,19 @@ public interface GameService {
     public List<Game> getByAuthorId(String authorId, int max);
 
     /**
+     * Get game list by owner id and creation date after
+     * @param authorId
+     * @param creationDate
+     * @return a game list
+     */
+    public List<Game> getByAuthorIdAndCreationDateAfter(String authorId, DateTime creationDate);
+
+    /**
      * Generate an entire new game and save it
      * @return the Game generated
      */
     public Game generate();
 
-    /**
-     * Put the game in its life scheduler
-     * @param game game to schedule
-     */
-    public void readyGame(Game game);
 
     /**
      * wrapper to transform a game list in a GameMetaBean list
