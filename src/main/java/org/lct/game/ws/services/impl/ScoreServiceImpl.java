@@ -30,8 +30,6 @@ public class ScoreServiceImpl implements ScoreService{
 
     @Override
     public MonthScoreBean getMonthScoreBean(int year, int month, String sort) {
-
-
         List<MonthlyScore> monthlyScoreList = this.monthlyScoreRepository.findByYearAndMonth(year, month);
 
         List<MonthScoreBean.MonthScoreLineBean> monthScoreLineBeanList = new ArrayList<MonthScoreBean.MonthScoreLineBean>();
@@ -70,5 +68,10 @@ public class ScoreServiceImpl implements ScoreService{
         }
 
         return new MonthScoreBean(monthScoreLineBeanList);
+    }
+
+    @Override
+    public MonthlyScore getMonthScoreBeanForUser(int year, int month, String userId) {
+        return monthlyScoreRepository.findByYearAndMonthAndUserId(year, month, userId);
     }
 }

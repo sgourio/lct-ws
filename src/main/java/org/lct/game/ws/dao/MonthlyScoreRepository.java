@@ -18,4 +18,5 @@ public interface MonthlyScoreRepository extends MongoRepository<MonthlyScore, St
 
     public MonthlyScore findByUserIdAndYearAndMonth(String userId, int year, int month);
     public List<MonthlyScore> findByYearAndMonth(int year, int month);
+    public MonthlyScore findByYearAndMonthAndUserId(int year, int month, String userId);
 }

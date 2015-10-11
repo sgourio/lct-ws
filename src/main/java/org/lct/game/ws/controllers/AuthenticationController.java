@@ -20,7 +20,6 @@ package org.lct.game.ws.controllers;
     import com.restfb.Version;
     import org.hibernate.validator.constraints.NotBlank;
     import org.lct.game.ws.beans.model.User;
-    import org.lct.game.ws.beans.model.UserBuilder;
     import org.lct.game.ws.beans.view.Token;
     import org.lct.game.ws.dao.UserRepository;
     import org.lct.game.ws.filters.AuthUtils;
@@ -80,12 +79,12 @@ public class AuthenticationController {
         Userinfoplus userinfoplus = oauth2.userinfo().v2().me().get().execute();
 
         User user = userRepository.getUserByEmail(tokenInfo.getEmail());
-        if( user == null ){
-            user = new UserBuilder().setName(userinfoplus.getName()).setEmail(tokenInfo.getEmail()).createUser();
+        String userId = null;
+        if( user != null ){
+            userId = user.getId();
         }
-        Token token = AuthUtils.createToken("LCT", user.getName());
-        user = new UserBuilder().setId(user.getId()).setToken(token.getToken()).setName(userinfoplus.getName()).setEmail(user.getEmail()).createUser();
-
+        Token token = AuthUtils.createToken("LCT", userinfoplus.getName());
+        user = new User(userId, token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink());
         userRepository.save(user);
 
         return token;
@@ -101,11 +100,12 @@ public class AuthenticationController {
         com.restfb.types.User facebookUser = facebookUserClient.fetchObject("me", com.restfb.types.User.class);
 
         User user = userRepository.getUserByEmail(facebookUser.getEmail());
-        if( user == null ){
-            user = new UserBuilder().setName(facebookUser.getName()).setEmail(facebookUser.getEmail()).createUser();
+        String userId = null;
+        if( user != null ){
+            userId = user.getId();
         }
-        Token token = AuthUtils.createToken("LCT", user.getName());
-        user = new UserBuilder().setId(user.getId()).setToken(token.getToken()).setName(facebookUser.getName()).setEmail(user.getEmail()).createUser();
+        Token token = AuthUtils.createToken("LCT", facebookUser.getName());
+        user = new User(userId, token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink());
 
         userRepository.save(user);
 
