@@ -134,7 +134,7 @@ public class GameServiceImpl implements GameService{
                 throw new InvalidRoundException("Not the best word possible in round " + roundNumber);
             }
 
-            boardGame = boardGame.dropWord(round.getDroppedWord());
+            boardGame = boardGame.dropWord(round.getDroppedWord(), roundNumber);
             List<Tile> resultDraw = new ArrayList<Tile>(round.getDraw());
             for(Square square : round.getDroppedWord().getSquareList()){
                 resultDraw.remove(square.getDroppedTile().getTile());
@@ -204,24 +204,24 @@ public class GameServiceImpl implements GameService{
         List<Tile> deck = DeckTemplateEnum.french.getTileList();
         BoardGameTemplate boardGameTemplate = new BoardGameTemplate(BoardGameTemplateEnum.classic.getSquares());
         BoardGame boardGame = new BoardGame(boardGameTemplate);
-        int turnNumber = 0;
+        int roundNumber = 0;
         List<Tile> currentDraw = new ArrayList<Tile>();
         List<Round> roundList = new ArrayList<Round>();
         while( !isGameFinish(deck, currentDraw) ){
-            turnNumber++;
-            currentDraw = draw(turnNumber, deck, currentDraw);
+            roundNumber++;
+            currentDraw = draw(roundNumber, deck, currentDraw);
 
             Set<DroppedWord> droppedWordList = boardService.findBestWord(dictionaryService, Dictionary.french, boardGame, new ArrayList<Tile>(currentDraw));
             if( droppedWordList.size() > 0) {
                 Round round = new Round(new ArrayList<Tile>(currentDraw), droppedWordList.iterator().next());
                 roundList.add(round);
-                boardGame = boardGame.dropWord(round.getDroppedWord());
+                boardGame = boardGame.dropWord(round.getDroppedWord(), roundNumber);
                 for(Square square : round.getDroppedWord().getSquareList()){
                     currentDraw.remove(square.getDroppedTile().getTile());
                 }
                 boardService.logBoardGame(boardGame);
             }else{
-                turnNumber--;
+                roundNumber--;
                 clearDraw(deck, currentDraw);
             }
         }

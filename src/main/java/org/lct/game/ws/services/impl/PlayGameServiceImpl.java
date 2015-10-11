@@ -321,7 +321,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         BoardGame boardGame = new BoardGame(boardGameTemplate);
         int nbRounds = playGame.getGame().getRoundList().size();
         for( int i = 0; i < nbRounds ; i++) {
-            boardGame = boardGame.dropWord(playGame.getGame().getRoundList().get(i).getDroppedWord());
+            boardGame = boardGame.dropWord(playGame.getGame().getRoundList().get(i).getDroppedWord(), i+1);
         }
 
         List<DroppedTile> draw = new ArrayList<DroppedTile>();
@@ -350,7 +350,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         BoardGameTemplate boardGameTemplate = new BoardGameTemplate(BoardGameTemplateEnum.classic.getSquares());
         BoardGame boardGame = new BoardGame(boardGameTemplate);
         for( int i = 0; i < roundNumber - 1 ; i++) {
-            boardGame = boardGame.dropWord(playGame.getGame().getRoundList().get(i).getDroppedWord());
+            boardGame = boardGame.dropWord(playGame.getGame().getRoundList().get(i).getDroppedWord(), i+1);
         }
         DateTime gameStartDate = new DateTime(playGame.getStartDate());
         Duration duration = new Duration((roundNumber-1) * playGame.getRoundTime() * 1000);

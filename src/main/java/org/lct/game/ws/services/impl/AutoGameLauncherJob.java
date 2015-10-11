@@ -51,6 +51,9 @@ public class AutoGameLauncherJob extends QuartzJobBean {
                 }
             }
         }
+        if( gameList.size() < 10 ){
+            return;
+        }
 
 
         boolean next75s = false;
