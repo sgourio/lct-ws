@@ -21,17 +21,22 @@ import org.springframework.scheduling.quartz.QuartzJobBean;
 public class AutoCreateGameJob  extends QuartzJobBean  {
     private static final Logger logger = LoggerFactory.getLogger(AutoCreateGameJob.class);
 
-    private static boolean running = false;
+    private boolean running = false;
     private GameService gameService;
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
         if( !running ) {
             running = true;
-            Game game = gameService.generate();
-            GameMetaBean gameMetaBean = gameService.gameToGameMeta(game);
-            logger.info("Game created: " + gameMetaBean.getName() + " : " + gameMetaBean.getRounds() + " rounds " + gameMetaBean.getMaxScore() + " pts");
-            running = false;
+            try {
+                Game game = gameService.generate();
+                GameMetaBean gameMetaBean = gameService.gameToGameMeta(game);
+                logger.info("Game created: " + gameMetaBean.getName() + " : " + gameMetaBean.getRounds() + " rounds " + gameMetaBean.getMaxScore() + " pts");
+            }catch (Exception e){
+                logger.error("Generation error", e);
+            }finally {
+                running = false;
+            }
         }
     }
 
