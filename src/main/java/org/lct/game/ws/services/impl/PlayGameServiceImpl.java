@@ -171,7 +171,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                     int points = (int) Math.round(maxPoints - coefficient * (position - 1));
 
                     int percent = hasPlayedFirstRound ? (int) (((double) playerGame.getScore() / lastRound.getScore()) * 10000) : 0;
-                    MonthlyScoreGame monthlyScoreGame = new MonthlyScoreGame(playGame.getName(), playGame.getId(), playGame.getStartDate(), points, percent, position, playerGame.getScore(), lastRound.getScore(), hasPlayedFirstRound);
+                    MonthlyScoreGame monthlyScoreGame = new MonthlyScoreGame(playGame.getName(), playGame.getId(), playGame.getStartDate(), points, percent, position,  playerGameList.size(), playerGame.getScore(), lastRound.getScore(), hasPlayedFirstRound);
 
                     MonthlyScore monthlyScore = monthlyScoreRepository.findByUserIdAndYearAndMonth(playerGame.getUserId(), gameDate.getYear(), gameDate.getMonthOfYear());
                     List<MonthlyScoreGame> monthlyScoreGameList = new ArrayList<MonthlyScoreGame>();

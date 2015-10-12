@@ -11,6 +11,7 @@ import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.view.UserBean;
+import org.lct.game.ws.services.MailService;
 import org.lct.game.ws.services.ScoreService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,6 +34,9 @@ public class AccountController {
     @Autowired
     private ScoreService scoreService;
 
+    @Autowired
+    private MailService mailService;
+
     @RequestMapping(value="/me", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
@@ -46,5 +50,13 @@ public class AccountController {
     public MonthlyScore getUserScores(@ModelAttribute User user) throws Exception{
         DateTime now = DateTime.now();
         return scoreService.getMonthScoreBeanForUser( now.getYear(), now.getMonthOfYear(), user.getId() );
+    }
+
+    @RequestMapping(value="/message", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String postMessage(@ModelAttribute User user, @RequestBody String message) throws Exception{
+        mailService.send(message, user.getEmail());
+        return "ok";
     }
 }

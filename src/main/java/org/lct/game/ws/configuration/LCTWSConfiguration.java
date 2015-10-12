@@ -8,14 +8,8 @@ package org.lct.game.ws.configuration;
 
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.dao.*;
-import org.lct.game.ws.services.EventService;
-import org.lct.game.ws.services.GameService;
-import org.lct.game.ws.services.PlayGameService;
-import org.lct.game.ws.services.ScoreService;
-import org.lct.game.ws.services.impl.EventServiceImpl;
-import org.lct.game.ws.services.impl.GameServiceImpl;
-import org.lct.game.ws.services.impl.PlayGameServiceImpl;
-import org.lct.game.ws.services.impl.ScoreServiceImpl;
+import org.lct.game.ws.services.*;
+import org.lct.game.ws.services.impl.*;
 import org.lct.gameboard.ws.services.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -70,6 +64,11 @@ public class LCTWSConfiguration {
     @Bean
     public PlayGameService playGameService(){
         return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository);
+    }
+
+    @Bean
+    public MailService mailService(){
+        return new MailServiceImpl();
     }
 
     @Bean

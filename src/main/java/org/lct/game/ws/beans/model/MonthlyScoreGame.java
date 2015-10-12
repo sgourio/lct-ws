@@ -20,21 +20,22 @@ public class MonthlyScoreGame {
     private final int points;
     private final int percentFromTop; // *100
     private final int position;
+    private final int nbPlayers;
     private final int score;
     private final int topScore;
     private final boolean hasPlayedFirstRound;
 
-    public MonthlyScoreGame( @JsonProperty("gameName") String gameName, @JsonProperty("gameId") String gameId, @JsonProperty("gameDate")  Date gameDate, @JsonProperty("points") int points, @JsonProperty("percentFromTop") int percentFromTop, @JsonProperty("position") int position, @JsonProperty("score") int score, @JsonProperty("topScore") int topScore, @JsonProperty("hasPlayedFirstRound") boolean hasPlayedFirstRound) {
+    public MonthlyScoreGame( @JsonProperty("gameName") String gameName, @JsonProperty("gameId") String gameId, @JsonProperty("gameDate")  Date gameDate, @JsonProperty("points") int points, @JsonProperty("percentFromTop") int percentFromTop, @JsonProperty("position") int position,  @JsonProperty("nbPlayers") int nbPlayers, @JsonProperty("score") int score, @JsonProperty("topScore") int topScore, @JsonProperty("hasPlayedFirstRound") boolean hasPlayedFirstRound) {
         this.gameName = gameName;
         this.gameId = gameId;
         this.gameDate = gameDate;
         this.points = points;
         this.percentFromTop = percentFromTop;
         this.position = position;
+        this.nbPlayers = nbPlayers;
         this.score = score;
         this.topScore = topScore;
         this.hasPlayedFirstRound = hasPlayedFirstRound;
-
     }
 
     public boolean isHasPlayedFirstRound() {
@@ -71,5 +72,9 @@ public class MonthlyScoreGame {
 
     public int getScore() {
         return score;
+    }
+
+    public int getNbPlayers() {
+        return nbPlayers;
     }
 }
