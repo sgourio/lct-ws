@@ -80,11 +80,13 @@ public class AuthenticationController {
 
         User user = userRepository.getUserByEmail(tokenInfo.getEmail());
         String userId = null;
+        String nickname = null;
         if( user != null ){
             userId = user.getId();
+            nickname = user.getNickname();
         }
         Token token = AuthUtils.createToken("LCT", userinfoplus.getName());
-        user = new User(userId, token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink());
+        user = new User(userId, token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
         userRepository.save(user);
 
         return token;
@@ -101,11 +103,13 @@ public class AuthenticationController {
 
         User user = userRepository.getUserByEmail(facebookUser.getEmail());
         String userId = null;
+        String nickname = null;
         if( user != null ){
             userId = user.getId();
+            nickname = user.getNickname();
         }
         Token token = AuthUtils.createToken("LCT", facebookUser.getName());
-        user = new User(userId, token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink());
+        user = new User(userId, token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
 
         userRepository.save(user);
 

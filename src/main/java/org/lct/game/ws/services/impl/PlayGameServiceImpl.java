@@ -68,7 +68,7 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     @Override
     public PlayGame openGame(Game game, String name, int roundTime, User user) {
-        PlayGame playGame = openGame(game, name, roundTime, user.getName());
+        PlayGame playGame = openGame(game, name, roundTime, user.getNickname());
         joinGame(playGame.getId(), user);
         return playGame;
     }
@@ -409,12 +409,12 @@ public class PlayGameServiceImpl implements PlayGameService {
     public PlayGame joinGame(String playGameId, User user){
         PlayGame playGame = playGameRepository.findOne(playGameId);
         if( playGame != null ) {
-            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getName(), 0);
+            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getNickname(), 0);
             if (!getPlayerListForGame(playGameId).contains(playerGame)) {
                 logger.info(user + " join " + playGame);
                 List<PlayerRound> playerRoundList = new ArrayList<PlayerRound>();
                 for(int i = 0 ; i < playGame.getPlayRoundList().size(); i++){
-                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getName(), 0, null);
+                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getNickname(), 0, null);
                     playerRoundList.add(playerRound);
                 }
                 playerRoundRepository.save(playerRoundList);
@@ -560,7 +560,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             if( wordResult.getTotal() > 0) {
                 PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
                 if( lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints() ) {
-                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getName(), wordResult.getTotal(), wordResult.getWord());
+                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getNickname(), wordResult.getTotal(), wordResult.getWord());
                     playerRoundRepository.save(newPlayerRound);
                 }
             }

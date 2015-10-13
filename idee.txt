@@ -3,3 +3,7 @@ Faire le plateau et les lettres en CSS / flat design
 Quand on tape une lettre sur le plateau, déplacer la case en fonction du sens du mot
 
 Fonction gérer ses parties
+
+----
+TODO: faire le logout (deloguer l'utilisateur)
+TODO: sortir d'un jeu

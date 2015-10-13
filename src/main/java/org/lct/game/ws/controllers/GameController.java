@@ -57,7 +57,7 @@ public class GameController {
     public String create(@PathVariable("lang") String lang, @RequestBody Game game, @ModelAttribute User user) throws Exception{
         logger.info("Create game...");
         try {
-            gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName(), new Date()));
+            gameService.add(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getNickname(), new Date()));
         }catch (Exception e){
             logger.error("",e);
             throw e;
@@ -78,7 +78,7 @@ public class GameController {
     @ResponseBody
     public void put(@PathVariable("lang") String lang, @PathVariable("id") String id, @RequestBody Game game, @ModelAttribute User user) throws IncompleteGameException {
         logger.info("save game " + game.getName() +"...");
-        gameService.save(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getName(), new Date()));
+        gameService.save(new Game(game.getName(), game.getLang(), game.getRoundList(), user.getId(), user.getNickname(), new Date()));
     }
 
     /**

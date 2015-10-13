@@ -16,5 +16,6 @@ public interface UserRepository extends MongoRepository<User, String> {
 
     public User getUserByToken(String token);
     public User getUserByEmail(String email);
+    public User getUserByNickname(String nickname);
 
 }

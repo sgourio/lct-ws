@@ -22,14 +22,16 @@ public class User {
     private final String email;
     private final String profilPictureURL;
     private final String profilLink;
+    private final String nickname;
 
-    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink) {
+    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink, @JsonProperty("nickname") String nickname) {
         this.token = token;
         this.name = name;
         this.email = email;
         this.id = id;
         this.profilPictureURL = profilPictureURL;
         this.profilLink = profilLink;
+        this.nickname = nickname;
     }
 
     public String getId() {
@@ -54,6 +56,10 @@ public class User {
 
     public String getProfilLink() {
         return profilLink;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 
     @Override

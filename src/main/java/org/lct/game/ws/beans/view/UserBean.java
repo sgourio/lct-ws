@@ -14,12 +14,14 @@ public class UserBean {
     private final String name;
     private final String profilPictureURL;
     private final String profilLink;
+    private final String nickname;
 
-    public UserBean(String id, String name, String profilPictureURL, String profilLink) {
+    public UserBean(String id, String name, String profilPictureURL, String profilLink, String nickname) {
         this.id = id;
         this.name = name;
         this.profilPictureURL = profilPictureURL;
         this.profilLink = profilLink;
+        this.nickname = nickname;
     }
 
     public String getId() {
@@ -36,5 +38,9 @@ public class UserBean {
 
     public String getProfilLink() {
         return profilLink;
+    }
+
+    public String getNickname() {
+        return nickname;
     }
 }

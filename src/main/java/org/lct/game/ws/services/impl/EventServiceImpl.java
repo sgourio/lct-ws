@@ -66,9 +66,9 @@ public class EventServiceImpl implements EventService {
         Set<User> toConnect = new HashSet<User>(userToConnect);
         userToConnect = new HashSet<User>();
         for( User user : toConnect) {
-            logger.info(user.getName() + " is actif");
+            logger.info(user.getName() +" (" + user.getNickname()  + ") is actif");
             long count = connectedUserRepository.count();
-            connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getName(), new Date()));
+            connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getNickname(), new Date()));
             if (count != connectedUserRepository.count()) {
                 messagingTemplate.convertAndSend(gamerList, connectedUserRepository.findAll());
             }
@@ -129,7 +129,7 @@ public class EventServiceImpl implements EventService {
     public void addChatMessage(User user, String message, String chatId){
         Chat chat = chatRepository.findOne(chatId);
         if( chat != null ) {
-            chat.getChatMessageList().add(new ChatMessage(user.getName(), new Date(), message));
+            chat.getChatMessageList().add(new ChatMessage(user.getNickname(), new Date(), message));
             chatRepository.save(chat);
         }
     }
