@@ -18,6 +18,7 @@ package org.lct.game.ws.controllers;
     import com.restfb.DefaultFacebookClient;
     import com.restfb.FacebookClient;
     import com.restfb.Version;
+    import org.apache.commons.lang3.RandomStringUtils;
     import org.hibernate.validator.constraints.NotBlank;
     import org.lct.game.ws.beans.model.User;
     import org.lct.game.ws.beans.view.Token;
@@ -84,6 +85,12 @@ public class AuthenticationController {
         if( user != null ){
             userId = user.getId();
             nickname = user.getNickname();
+        }
+        if( nickname == null){
+            nickname = userinfoplus.getGivenName() + RandomStringUtils.randomNumeric(8);
+            if( nickname == null ){
+                nickname = userinfoplus.getName() + RandomStringUtils.randomNumeric(8);
+            }
         }
         Token token = AuthUtils.createToken("LCT", userinfoplus.getName());
         user = new User(userId, token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);

@@ -56,9 +56,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void registrerUser(User user) {
-        if( !alreadyConnect.contains(user.getId()) ) {
-            userToConnect.add(user);
-        }
+        userToConnect.add(user);
     }
 
     @Scheduled(fixedRate = 2000)

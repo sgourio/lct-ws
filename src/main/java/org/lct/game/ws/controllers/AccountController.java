@@ -12,6 +12,7 @@ import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.view.UserBean;
 import org.lct.game.ws.dao.UserRepository;
+import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.MailService;
 import org.lct.game.ws.services.ScoreService;
 import org.slf4j.Logger;
@@ -42,6 +43,9 @@ public class AccountController {
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private EventService eventService;
 
     @RequestMapping(value="/me", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
@@ -74,7 +78,8 @@ public class AccountController {
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
         User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), nickname);
-        userRepository.save(u);
+        u = userRepository.save(u);
+        eventService.registrerUser(u);
         return new ResponseEntity(HttpStatus.OK);
     }
 }
