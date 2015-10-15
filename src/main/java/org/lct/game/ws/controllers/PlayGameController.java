@@ -55,7 +55,7 @@ public class PlayGameController {
     @ResponseBody
     public String openGame(@RequestBody PreparedGame preparedGame, @ModelAttribute User user){
         Game game = gameService.getById(preparedGame.getGameId());
-        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user);
+        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user, DateTime.now());
         return playGame.getId();
     }
 
@@ -108,7 +108,7 @@ public class PlayGameController {
     @ResponseBody
     public String joinGame(@PathVariable("id") String id, @ModelAttribute User user){
         // TODO check autorisation
-        PlayGame playGame = playGameService.joinGame(id, user);
+        PlayGame playGame = playGameService.joinGame(id, user, DateTime.now());
         if( playGame != null ) {
             eventService.publishPlayers(playGame, playGameService.getPlayerListForGame(id));
         }

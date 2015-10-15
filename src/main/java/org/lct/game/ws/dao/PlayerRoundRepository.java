@@ -17,6 +17,7 @@ import java.util.List;
 public interface PlayerRoundRepository extends MongoRepository<PlayerRound, String> {
 
     public List<PlayerRound> findByPlayGameId(String playGameId);
+    public List<PlayerRound> findByPlayGameIdAndRoundNumber(String playGameId, int roundNumber);
     public List<PlayerRound> findByPlayGameIdAndUserId(String playGameId, String userId);
     public PlayerRound findByPlayGameIdAndUserIdAndRoundNumber(String playGameId, String userId, int roundNumber);
 }

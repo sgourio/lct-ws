@@ -3,6 +3,7 @@ package org.lct.game.ws.beans.model.gaming;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -16,14 +17,22 @@ public class PlayerGame implements Comparable<PlayerGame> {
     private final String userId;
     private final String playGameId;
     private final String name;
+    private final String gameId;
+    private final String gameName;
+    private final Date playDate;
     private final int score; // global
+    private final int bonus;
 
-    public PlayerGame(@JsonProperty("id") String id, @JsonProperty("userId") String userId, @JsonProperty("playGameId") String playGameId, @JsonProperty("name") String name, @JsonProperty("score") int score) {
+    public PlayerGame(@JsonProperty("id") String id, @JsonProperty("userId") String userId, @JsonProperty("playGameId") String playGameId, @JsonProperty("name") String name, @JsonProperty("gameId") String gameId, @JsonProperty("gameName") String gameName, @JsonProperty("playDate") Date playDate, @JsonProperty("score") int score, @JsonProperty("bonus") int bonus) {
         this.id = id;
+        this.userId = userId;
         this.playGameId = playGameId;
         this.name = name;
+        this.gameId = gameId;
+        this.gameName = gameName;
+        this.playDate = playDate;
         this.score = score;
-        this.userId = userId;
+        this.bonus = bonus;
     }
 
     public String getId() {
@@ -44,6 +53,22 @@ public class PlayerGame implements Comparable<PlayerGame> {
 
     public int getScore() {
         return score;
+    }
+
+    public String getGameId() {
+        return gameId;
+    }
+
+    public String getGameName() {
+        return gameName;
+    }
+
+    public Date getPlayDate() {
+        return playDate;
+    }
+
+    public int getBonus() {
+        return bonus;
     }
 
     @Override

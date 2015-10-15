@@ -12,6 +12,7 @@ import org.lct.game.ws.services.*;
 import org.lct.game.ws.services.impl.*;
 import org.lct.gameboard.ws.services.BoardService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.quartz.SchedulerFactoryBean;
@@ -51,6 +52,13 @@ public class LCTWSConfiguration {
     @Autowired
     private MonthlyScoreRepository monthlyScoreRepository;
 
+    @Value("${nb.points.limit.to.save.score}")
+    private int nbPointsLimitToSaveScore;
+
+    @Value("${nb.players.limit.for.bonus}")
+    private int nbPlayersLimitForBonus;
+
+
     @Bean
     public GameService gameService(){
         return new GameServiceImpl(gameRepository, boardService, dictionaryService, schedulerFactoryBean);
@@ -63,7 +71,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository, nbPointsLimitToSaveScore, nbPlayersLimitForBonus);
     }
 
     @Bean

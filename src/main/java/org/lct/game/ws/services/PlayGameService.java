@@ -27,8 +27,8 @@ public interface PlayGameService {
      * @param user owner of the PlayGame
      * @return PlayGame with status opened
      */
-    public PlayGame openGame(Game game, String name, int roundTime, User user);
-    public PlayGame openAutoGame(Game game, String name, int roundTime);
+    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime);
+    public PlayGame openAutoGame(Game game, String name, int roundTime, DateTime atTime);
 
     /**
      * Set up a playGame by setting its start date
@@ -88,8 +88,9 @@ public interface PlayGameService {
      * User join the game
      * @param playGameId
      * @param user
+     * @param dateTime
      */
-    public PlayGame joinGame(String playGameId, User user);
+    public PlayGame joinGame(String playGameId, User user, DateTime dateTime);
 
     /**
      * quitGame
@@ -152,7 +153,7 @@ public interface PlayGameService {
 
     public GameScore getScores(PlayGame playGame, DateTime atTime);
 
-    public void updateScores(PlayGame playGame);
+    public void updateScores(PlayGame playGame, DateTime atTime);
 
     /**
      * Update month score

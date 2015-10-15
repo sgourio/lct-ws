@@ -41,12 +41,14 @@ public class GameScore {
         private final int total;
         private final Word lastWord;
         private final int percentageFromTop;
+        private final int lastBonus;
 
-        public PlayerGameScore(String name, int total, Word lastWord, int percentageFromTop) {
+        public PlayerGameScore(String name, int total, Word lastWord, int percentageFromTop, int lastBonus) {
             this.name = name;
             this.total = total;
             this.lastWord = lastWord;
             this.percentageFromTop = percentageFromTop;
+            this.lastBonus = lastBonus;
         }
 
         public String getName() {
@@ -63,6 +65,10 @@ public class GameScore {
 
         public int getPercentageFromTop() {
             return percentageFromTop;
+        }
+
+        public int getLastBonus() {
+            return lastBonus;
         }
     }
 }

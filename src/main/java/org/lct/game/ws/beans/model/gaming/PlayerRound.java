@@ -21,8 +21,9 @@ public class PlayerRound {
     private final String playGameId;
     private final int score; // turn score
     private final Word word; // word reference
+    private final int bonus;
 
-    public PlayerRound(@JsonProperty("id") String id, @JsonProperty("playDate") Date playDate, @JsonProperty("userId") String userId, @JsonProperty("playGameId") String playGameId, @JsonProperty("roundNumber") int roundNumber, @JsonProperty("name") String name, @JsonProperty("score") int score, @JsonProperty("word") Word word) {
+    public PlayerRound(@JsonProperty("id") String id, @JsonProperty("playDate") Date playDate, @JsonProperty("userId") String userId, @JsonProperty("playGameId") String playGameId, @JsonProperty("roundNumber") int roundNumber, @JsonProperty("name") String name, @JsonProperty("score") int score, @JsonProperty("word") Word word, @JsonProperty("score") int bonus) {
         this.id = id;
         this.playDate = playDate;
         this.userId = userId;
@@ -31,6 +32,7 @@ public class PlayerRound {
         this.name = name;
         this.score = score;
         this.word = word;
+        this.bonus = bonus;
     }
 
     public String getId() {
@@ -63,5 +65,9 @@ public class PlayerRound {
 
     public int getRoundNumber() {
         return roundNumber;
+    }
+
+    public int getBonus() {
+        return bonus;
     }
 }

@@ -3,7 +3,6 @@ package org.lct.game.ws.services.impl;
 import org.apache.commons.lang3.CharUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
-import org.joda.time.DateTimeComparator;
 import org.joda.time.Duration;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -11,11 +10,9 @@ import org.lct.dictionary.beans.Dictionary;
 import org.lct.dictionary.services.DictionaryService;
 import org.lct.game.ws.beans.PlayGameStatus;
 import org.lct.game.ws.beans.model.*;
+import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.gaming.*;
-import org.lct.game.ws.beans.view.GameScore;
-import org.lct.game.ws.beans.view.PlayGameMetaBean;
-import org.lct.game.ws.beans.view.Word;
-import org.lct.game.ws.beans.view.WordResult;
+import org.lct.game.ws.beans.view.*;
 import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
@@ -52,8 +49,10 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final PlayerRoundRepository playerRoundRepository;
     private final ChatRepository chatRepository;
     private final MonthlyScoreRepository monthlyScoreRepository;
+    private final int nbPointsLimitToSaveScore;
+    private final int nbPlayersLimitForBonus;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository, MonthlyScoreRepository monthlyScoreRepository) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository, MonthlyScoreRepository monthlyScoreRepository, int minPoints, int nbPlayerLimitForBonus) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
@@ -64,22 +63,24 @@ public class PlayGameServiceImpl implements PlayGameService {
         this.playerRoundRepository = playerRoundRepository;
         this.chatRepository = chatRepository;
         this.monthlyScoreRepository = monthlyScoreRepository;
+        this.nbPointsLimitToSaveScore = minPoints;
+        this.nbPlayersLimitForBonus = nbPlayerLimitForBonus;
     }
 
     @Override
-    public PlayGame openGame(Game game, String name, int roundTime, User user) {
-        PlayGame playGame = openGame(game, name, roundTime, user.getNickname());
-        joinGame(playGame.getId(), user);
+    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime) {
+        PlayGame playGame = openGame(game, name, roundTime, user.getNickname(), atTime);
+        joinGame(playGame.getId(), user, atTime);
         return playGame;
     }
 
     @Override
-    public PlayGame openAutoGame(Game game, String name, int roundTime) {
-        PlayGame playGame = openGame(game, name, roundTime, "auto");
+    public PlayGame openAutoGame(Game game, String name, int roundTime, DateTime atTime) {
+        PlayGame playGame = openGame(game, name, roundTime, "auto", atTime);
         return playGame;
     }
 
-    private PlayGame openGame(Game game, String name, int roundTime, String owner) {
+    private PlayGame openGame(Game game, String name, int roundTime, String owner, DateTime atTime) {
         List<PlayRound> playRoundList = new ArrayList<>(game.getRoundList().size());
         int total = 0;
         for( Round round : game.getRoundList()){
@@ -91,7 +92,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         PlayGame playGame = new PlayGameBuilder()
                 .setGame(game)
                 .setName(name)
-                .setCreationDate(new Date())
+                .setCreationDate(atTime.toDate())
                 .setOwner(owner)
                 .setPlayRoundList(playRoundList)
                 .setStatus(PlayGameStatus.opened.getId())
@@ -140,12 +141,11 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     public void updateMonthlyScores(PlayGame playGame){
-        int minPoints = 10;
         List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
         Collections.sort(playerGameList);
         int nbPlayers = 0;
         for( PlayerGame playerGame : playerGameList){
-            if( playerGame.getScore() >= minPoints){
+            if( playerGame.getScore() >= nbPointsLimitToSaveScore){
                 nbPlayers++;
             }else{
                 break;
@@ -160,7 +160,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             DateTime gameDate = new DateTime(playGame.getStartDate());
             PlayRound lastRound = playGame.getPlayRoundList().get(playGame.getPlayRoundList().size() - 1);
             for (PlayerGame playerGame : playerGameList) {
-                if (playerGame.getScore() >= minPoints) {
+                if (playerGame.getScore() >= nbPointsLimitToSaveScore) {
                     PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), 1);
                     boolean hasPlayedFirstRound = playerRound != null && playerRound.getScore() > 0;
                     if (playerGame.getScore() != lastScore) {
@@ -305,7 +305,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return getRound(playGame, getRoundNumber(playGame, atTime));
     }
 
-    private int getRoundNumber(PlayGame playGame, DateTime atTime){
+    public int getRoundNumber(PlayGame playGame, DateTime atTime){
         DateTime startedDateTime = new DateTime(playGame.getStartDate());
         if( startedDateTime.isAfter(atTime)){
             return 0;
@@ -406,15 +406,15 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
-    public PlayGame joinGame(String playGameId, User user){
+    public PlayGame joinGame(String playGameId, User user, DateTime dateTime){
         PlayGame playGame = playGameRepository.findOne(playGameId);
         if( playGame != null ) {
-            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getNickname(), 0);
+            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getNickname(), playGame.getGame().getId(), playGame.getGame().getName(), dateTime.toDate(), 0, 0);
             if (!getPlayerListForGame(playGameId).contains(playerGame)) {
                 logger.info(user + " join " + playGame);
                 List<PlayerRound> playerRoundList = new ArrayList<PlayerRound>();
                 for(int i = 0 ; i < playGame.getPlayRoundList().size(); i++){
-                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getNickname(), 0, null);
+                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getNickname(), 0, null, 0);
                     playerRoundList.add(playerRound);
                 }
                 playerRoundRepository.save(playerRoundList);
@@ -560,7 +560,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             if( wordResult.getTotal() > 0) {
                 PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
                 if( lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints() ) {
-                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getNickname(), wordResult.getTotal(), wordResult.getWord());
+                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getNickname(), wordResult.getTotal(), wordResult.getWord(),0);
                     playerRoundRepository.save(newPlayerRound);
                 }
             }
@@ -640,7 +640,7 @@ public class PlayGameServiceImpl implements PlayGameService {
             List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
             List<GameScore.PlayerGameScore> playerGameScoreList = new ArrayList<GameScore.PlayerGameScore>();
             for(PlayerGame playerGame : playerGameList){
-                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerGame.getName(), 0, null, 10000);
+                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerGame.getName(), 0, null, 10000, 0);
                 playerGameScoreList.add(playerGameScore);
             }
             return new GameScore(playerGameScoreList, null, 0);
@@ -648,29 +648,37 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
-    public void updateScores(PlayGame playGame){
-        List<PlayerRound> playerRoundList = playerRoundRepository.findByPlayGameId(playGame.getId());
-        Map<String, List<PlayerRound>> playerRoundMap = new HashMap<>();
-        for( PlayerRound playerRound : playerRoundList){
-            List<PlayerRound> currentList = playerRoundMap.get(playerRound.getUserId());
-            if( currentList == null ){
-                currentList = new ArrayList<>();
-                playerRoundMap.put(playerRound.getUserId(), currentList);
-            }
-            currentList.add(playerRound);
-        }
-        List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
-        for(PlayerGame playerGame : playerGameList){
-            List<PlayerRound> currentList = playerRoundMap.get(playerGame.getUserId());
-            if( currentList != null ){
-                int total = 0;
-                for( PlayerRound playerRound : currentList ){
-                    total += playerRound.getScore();
+    public void updateScores(PlayGame playGame, DateTime atTime){
+        if( getRoundNumber(playGame, atTime) > 1) {
+            int roundNumber = getRoundNumber(playGame, atTime) - 1;
+            List<PlayerRound> playerRoundList = playerRoundRepository.findByPlayGameIdAndRoundNumber(playGame.getId(), roundNumber);
+            List<PlayerGame> playerGameList = playerRepository.findByPlayGameId(playGame.getId());
+            int maxScore = playGame.getPlayRoundList().get(roundNumber - 1).getWord().getPoints();
+            boolean addBonus = false;
+            PlayerRound bestPlayer = null;
+            for (PlayerRound playerRound : playerRoundList) {
+                if (playerRoundList.size() >= nbPlayersLimitForBonus && playerRound.getScore() == maxScore) {
+                    if (bestPlayer == null) {
+                        bestPlayer = playerRound;
+                        addBonus = true;
+                    } else {
+                        addBonus = false;
+                    }
                 }
-                playerRepository.save(new PlayerGame(playerGame.getId(), playerGame.getUserId(), playerGame.getPlayGameId(), playerGame.getName(), total ));
+                for (PlayerGame playerGame : playerGameList) {
+                    if (playerGame.getUserId().equals(playerRound.getUserId())) {
+                        playerRepository.save(new PlayerGame(playerGame.getId(), playerGame.getUserId(), playerGame.getPlayGameId(), playerGame.getName(), playerGame.getGameId(), playerGame.getGameName(), playerGame.getPlayDate(), playerGame.getScore() + playerRound.getScore(), playerGame.getBonus()));
+                        break;
+                    }
+                }
+            }
+
+            if (addBonus) {
+                playerRoundRepository.save(new PlayerRound(bestPlayer.getId(), bestPlayer.getPlayDate(), bestPlayer.getUserId(), bestPlayer.getPlayGameId(), bestPlayer.getRoundNumber(), bestPlayer.getName(), bestPlayer.getScore(), bestPlayer.getWord(), 10));
+                PlayerGame playerGame = playerRepository.findByPlayGameIdAndUserId(playGame.getId(), bestPlayer.getUserId());
+                playerRepository.save(new PlayerGame(playerGame.getId(), playerGame.getUserId(), playerGame.getPlayGameId(), playerGame.getName(), playerGame.getGameId(), playerGame.getGameName(), playerGame.getPlayDate(), playerGame.getScore(), playerGame.getBonus() + 10));
             }
         }
-
     }
 
     @Cacheable("score")
@@ -681,7 +689,8 @@ public class PlayGameServiceImpl implements PlayGameService {
         for(PlayerGame playerGame : playerGameList){
             PlayerRound playerRound = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGame.getId(), playerGame.getUserId(), roundNumber);
             if(playerRound != null ) {
-                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerRound.getName(), playerGame.getScore(), playerRound.getWord(), (int) (((double) playerGame.getScore() / playRound.getScore()) * 10000));
+                int score = playerGame.getScore() + playerGame.getBonus();
+                GameScore.PlayerGameScore playerGameScore = new GameScore.PlayerGameScore(playerRound.getName(), score, playerRound.getWord(), (int) (((double) playerGame.getScore() / playRound.getScore()) * 10000), playerRound.getBonus());
                 playerGameScoreList.add(playerGameScore);
             }
         }

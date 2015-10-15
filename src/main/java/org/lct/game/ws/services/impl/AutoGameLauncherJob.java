@@ -163,7 +163,7 @@ public class AutoGameLauncherJob extends QuartzJobBean {
             nextStart = DateTime.now();
         }
         nextStart = nextStart.withSecondOfMinute(0).plusMinutes(3);
-        PlayGame playGame = playGameService.openAutoGame(game, name, second);
+        PlayGame playGame = playGameService.openAutoGame(game, name, second, DateTime.now());
         playGameService.setUpGame(playGame, nextStart);
     }
 
