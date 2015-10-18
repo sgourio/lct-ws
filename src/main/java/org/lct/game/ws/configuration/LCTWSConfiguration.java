@@ -58,6 +58,9 @@ public class LCTWSConfiguration {
     @Value("${nb.players.limit.for.bonus}")
     private int nbPlayersLimitForBonus;
 
+    @Value("${admin}")
+    private String adminList;
+
 
     @Bean
     public GameService gameService(){
@@ -82,6 +85,11 @@ public class LCTWSConfiguration {
     @Bean
     public ScoreService scoreService(){
         return new ScoreServiceImpl(monthlyScoreRepository);
+    }
+
+    @Bean
+    public UserService userService(){
+        return new UserServiceImpl(adminList);
     }
 
 }

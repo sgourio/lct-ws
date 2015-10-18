@@ -16,6 +16,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.ReadOnlyJWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.joda.time.DateTime;
+import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.view.Token;
 
 import java.text.ParseException;
@@ -39,9 +40,12 @@ public final class AuthUtils {
 		}
 	}
 	
-	public static Token createToken(String host, String sub) throws JOSEException {
+	public static Token createToken(String host, User user, boolean isAdmin) throws JOSEException {
 		JWTClaimsSet claim = new JWTClaimsSet();
-		claim.setSubject(sub);
+		claim.setSubject(user.getName());
+        claim.setCustomClaim("userId", user.getId());
+        claim.setCustomClaim("nickname", user.getNickname());
+        claim.setCustomClaim("isAdmin", isAdmin);
 		claim.setIssuer(host);
 		claim.setIssueTime(DateTime.now().toDate());
 		claim.setExpirationTime(DateTime.now().plusDays(365).toDate());

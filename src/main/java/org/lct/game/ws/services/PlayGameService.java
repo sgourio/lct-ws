@@ -162,4 +162,12 @@ public interface PlayGameService {
     public void updateMonthlyScores(PlayGame playGame);
 
     public List<Game> getTodayGamesPlayed();
+
+    /**
+     * Is player has subscribeGame
+     * @param playGameId
+     * @param user
+     * @return
+     */
+    public boolean isHasSubscirbeGame(String playGameId, User user);
 }

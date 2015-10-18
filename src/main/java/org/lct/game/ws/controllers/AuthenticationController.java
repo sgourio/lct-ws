@@ -24,6 +24,7 @@ package org.lct.game.ws.controllers;
     import org.lct.game.ws.beans.view.Token;
     import org.lct.game.ws.dao.UserRepository;
     import org.lct.game.ws.filters.AuthUtils;
+    import org.lct.game.ws.services.UserService;
     import org.lct.game.ws.services.exceptions.IncompleteGameException;
     import org.slf4j.Logger;
     import org.slf4j.LoggerFactory;
@@ -45,6 +46,9 @@ public class AuthenticationController {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private UserService userService;
+
     @Value("${spring.oauth2.client.clientId}")
     private String googleClientId;
 
@@ -57,8 +61,6 @@ public class AuthenticationController {
     @Value("${facebook.appSecret}")
     private String facebookSecret;
 
-    @Value("${admin}")
-    private String adminList;
 
     @RequestMapping(value="/google", method= RequestMethod.POST)
     @ResponseStatus(value= HttpStatus.OK)
@@ -92,8 +94,9 @@ public class AuthenticationController {
                 nickname = userinfoplus.getName() + RandomStringUtils.randomNumeric(8);
             }
         }
-        Token token = AuthUtils.createToken("LCT", userinfoplus.getName());
-        user = new User(userId, token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
+        user = new User(userId, null, userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
+        Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
+        user = new User(user.getId(), token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
         userRepository.save(user);
 
         return token;
@@ -115,8 +118,15 @@ public class AuthenticationController {
             userId = user.getId();
             nickname = user.getNickname();
         }
-        Token token = AuthUtils.createToken("LCT", facebookUser.getName());
-        user = new User(userId, token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
+        if( nickname == null){
+            nickname = facebookUser.getFirstName() + RandomStringUtils.randomNumeric(8);
+            if( nickname == null ){
+                nickname = facebookUser.getName() + RandomStringUtils.randomNumeric(8);
+            }
+        }
+        user = new User(userId, null, facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
+        Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
+        user = new User(user.getId(), token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
 
         userRepository.save(user);
 
@@ -127,15 +137,7 @@ public class AuthenticationController {
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public boolean isAdmin(@ModelAttribute User user){
-        if( user != null ) {
-            String[] admins = adminList.split(",");
-            for (String admin : admins) {
-                if (admin.equals(user.getEmail())) {
-                    return true;
-                }
-            }
-        }
-        return false;
+        return userService.isAdmin(user);
     }
 
         // api key 0WBcooGi78AkLHl5Y0TK4mcST

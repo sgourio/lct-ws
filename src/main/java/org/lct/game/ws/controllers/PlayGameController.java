@@ -13,6 +13,7 @@ import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
+import org.lct.game.ws.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +45,9 @@ public class PlayGameController {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private UserService userService;
+
     /**
      * Open a game for playing ( the game is not started yet, but it is available to enter in )
      * @param preparedGame game attributes
@@ -70,10 +74,13 @@ public class PlayGameController {
     @ResponseBody
     public String startGame(@RequestBody ToStartGame toStartGame, @ModelAttribute User user){
         PlayGame playGame = playGameService.getPlayGame(toStartGame.getPlayGameId());
-        DateTime startAt = new DateTime(toStartGame.getStartDate());
-        startAt = startAt.withMillisOfSecond(0);
-        PlayGame result = playGameService.setUpGame(playGame, startAt);
-        return result.getId();
+        if( userService.isAdmin(user) || user.getNickname().equals(playGame.getOwner())) {
+            DateTime startAt = new DateTime(toStartGame.getStartDate());
+            startAt = startAt.withMillisOfSecond(0);
+            PlayGame result = playGameService.setUpGame(playGame, startAt);
+            return result.getId();
+        }
+        return null;
     }
 
 

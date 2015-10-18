@@ -70,7 +70,9 @@ public class PlayGameServiceImpl implements PlayGameService {
     @Override
     public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime) {
         PlayGame playGame = openGame(game, name, roundTime, user.getNickname(), atTime);
-        joinGame(playGame.getId(), user, atTime);
+        if( !game.getAuthorId().equals(user.getId()) ) {
+            joinGame(playGame.getId(), user, atTime);
+        }
         return playGame;
     }
 
@@ -288,6 +290,9 @@ public class PlayGameServiceImpl implements PlayGameService {
         return new PlayGameMetaBean(playGame.getId(),
                 playGame.getName(),
                 playGame.getOwner(),
+                playGame.getGame().getAuthorName(),
+                playGame.getGame().getAuthorId(),
+                playGame.getGame().getName(),
                 playGame.getPlayRoundList().size(),
                 playGame.getRoundTime(),
                 actualRoundNumber,
@@ -409,16 +414,18 @@ public class PlayGameServiceImpl implements PlayGameService {
     public PlayGame joinGame(String playGameId, User user, DateTime dateTime){
         PlayGame playGame = playGameRepository.findOne(playGameId);
         if( playGame != null ) {
-            PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getNickname(), playGame.getGame().getId(), playGame.getGame().getName(), dateTime.toDate(), 0, 0);
-            if (!getPlayerListForGame(playGameId).contains(playerGame)) {
-                logger.info(user + " join " + playGame);
-                List<PlayerRound> playerRoundList = new ArrayList<PlayerRound>();
-                for(int i = 0 ; i < playGame.getPlayRoundList().size(); i++){
-                    PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i+1), user.getNickname(), 0, null, 0);
-                    playerRoundList.add(playerRound);
+            if( !playGame.getGame().getAuthorId().equals(user.getId()) ) {
+                PlayerGame playerGame = new PlayerGame(null, user.getId(), playGameId, user.getNickname(), playGame.getGame().getId(), playGame.getGame().getName(), dateTime.toDate(), 0, 0);
+                if (!getPlayerListForGame(playGameId).contains(playerGame)) {
+                    logger.info(user + " join " + playGame);
+                    List<PlayerRound> playerRoundList = new ArrayList<PlayerRound>();
+                    for (int i = 0; i < playGame.getPlayRoundList().size(); i++) {
+                        PlayerRound playerRound = new PlayerRound(null, null, user.getId(), playGameId, (i + 1), user.getNickname(), 0, null, 0);
+                        playerRoundList.add(playerRound);
+                    }
+                    playerRoundRepository.save(playerRoundList);
+                    playerRepository.save(playerGame);
                 }
-                playerRoundRepository.save(playerRoundList);
-                playerRepository.save(playerGame);
             }
         }
         return playGame;
@@ -551,17 +558,19 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     public WordResult word(User user, String playGameId, DateTime atTime, String wordReference, Dictionary dictionary){
         WordResult wordResult = null;
-        PlayGame playGame = this.getPlayGame(playGameId);
-        if( playGame != null ) {
-            org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
-            BoardGame boardGame = round.getBoardGame();
-            List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
-            wordResult = result(playGame.getGame().getRoundList().get(round.getRoundNumber() - 1), droppedWordList, dictionary);
-            if( wordResult.getTotal() > 0) {
-                PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
-                if( lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints() ) {
-                    PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getNickname(), wordResult.getTotal(), wordResult.getWord(),0);
-                    playerRoundRepository.save(newPlayerRound);
+        if( this.isHasSubscirbeGame(playGameId, user) ) {
+            PlayGame playGame = this.getPlayGame(playGameId);
+            if (playGame != null) {
+                org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
+                BoardGame boardGame = round.getBoardGame();
+                List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
+                wordResult = result(playGame.getGame().getRoundList().get(round.getRoundNumber() - 1), droppedWordList, dictionary);
+                if (wordResult.getTotal() > 0) {
+                    PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
+                    if (lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints()) {
+                        PlayerRound newPlayerRound = new PlayerRound(lastPlayed.getId(), atTime.toDate(), user.getId(), playGameId, round.getRoundNumber(), user.getNickname(), wordResult.getTotal(), wordResult.getWord(), 0);
+                        playerRoundRepository.save(newPlayerRound);
+                    }
                 }
             }
         }
@@ -700,6 +709,11 @@ public class PlayGameServiceImpl implements PlayGameService {
     @Override
     public List<PlayerGame> getPlayerListForGame(String playGameId){
         return playerRepository.findByPlayGameId(playGameId);
+    }
+
+    @Override
+    public boolean isHasSubscirbeGame(String playGameId, User user){
+        return playerRepository.findByPlayGameIdAndUserId(playGameId, user.getId()) != null;
     }
 
     @Override
