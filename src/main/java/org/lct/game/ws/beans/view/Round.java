@@ -17,11 +17,13 @@ public class Round {
     private final int roundNumber;
     private final BoardGame boardGame;
     private final List<DroppedTile> draw;
+    private final List<DroppedTile> oldTiles;
+    private final List<DroppedTile> newTiles;
     private final Date startDate;
     private final Date endDate;
     private final DroppedWord lastDroppedWord;
 
-    public Round(String playGameId, int roundNumber, BoardGame boardGame, List<DroppedTile> draw, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
+    public Round(String playGameId, int roundNumber, BoardGame boardGame, List<DroppedTile> draw, List<DroppedTile> oldTiles, List<DroppedTile> newTiles, Date startDate, Date endDate, DroppedWord lastDroppedWord) {
         this.playGameId = playGameId;
         this.roundNumber = roundNumber;
         this.boardGame = boardGame;
@@ -29,6 +31,8 @@ public class Round {
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
         this.endDate =  endDate != null ? (Date) endDate.clone() : null;
         this.lastDroppedWord = lastDroppedWord;
+        this.oldTiles = oldTiles;
+        this.newTiles = newTiles;
     }
 
     public int getRoundNumber() {
@@ -55,6 +59,14 @@ public class Round {
         return lastDroppedWord;
     }
 
+    public List<DroppedTile> getOldTiles() {
+        return oldTiles;
+    }
+
+    public List<DroppedTile> getNewTiles() {
+        return newTiles;
+    }
+
     @Override
     public String toString() {
         return String.valueOf(roundNumber);
@@ -63,4 +75,6 @@ public class Round {
     public String getPlayGameId() {
         return playGameId;
     }
+
+
 }

@@ -7,7 +7,9 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
+import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
 import org.lct.game.ws.beans.view.GameScore;
+import org.lct.game.ws.beans.view.MultiplexGameMetaBean;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.dao.ConnectedUserRepository;
@@ -45,6 +47,8 @@ public class EventServiceImpl implements EventService {
     private static String metadata = "/topic/game/:gameId/metadata";
     private static String scores = "/topic/game/:gameId/scores";
     private static String chat = "/topic/chat/:chatId";
+    private static String multiplexMetaData = "/topic/multiplex/:gameId/metadata";
+    private static String multiplexRound = "/topic/multiplex/:gameId/round";
 
     private Set<String> alreadyConnect;
     private Set<User> userToConnect;
@@ -138,4 +142,16 @@ public class EventServiceImpl implements EventService {
         messagingTemplate.convertAndSend(EventServiceImpl.chat.replace(":chatId" ,chatId), chat);
     }
 
+    @Override
+    public void publishMultiplexMetaData(MultiplexGameMetaBean multiplexGameMetaBean){
+        logger.info("Publish multiplex meta " + multiplexGameMetaBean.getMultiplexGameId());
+        messagingTemplate.convertAndSend(multiplexMetaData.replace(":gameId", multiplexGameMetaBean.getMultiplexGameId()), multiplexGameMetaBean);
+    }
+
+    @Override
+    public void publishMultiplexRound(String multiplexGameId, org.lct.game.ws.beans.view.Round round){
+        if( round != null ) {
+            messagingTemplate.convertAndSend(multiplexRound.replace(":gameId", multiplexGameId), round);
+        }
+    }
 }

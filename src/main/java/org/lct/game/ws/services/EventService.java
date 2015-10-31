@@ -3,7 +3,9 @@ package org.lct.game.ws.services;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
+import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
 import org.lct.game.ws.beans.view.GameScore;
+import org.lct.game.ws.beans.view.MultiplexGameMetaBean;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
 import org.lct.game.ws.beans.view.Round;
 
@@ -29,4 +31,8 @@ public interface EventService {
     public void addChatMessage(User user, String message, String chatId);
 
     public void publishChat(String chatId);
+
+    public void publishMultiplexMetaData(MultiplexGameMetaBean multiplexGameMetaBean);
+
+    public void publishMultiplexRound(String multiplexGameId, org.lct.game.ws.beans.view.Round round);
 }

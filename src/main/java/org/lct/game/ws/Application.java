@@ -148,7 +148,7 @@ public class Application {
         FilterRegistrationBean registrationBean = new FilterRegistrationBean();
         AuthenticationFilter authenticationFilter = new AuthenticationFilter(userRepository, eventService);
         registrationBean.setFilter(authenticationFilter);
-        registrationBean.addUrlPatterns("/board/*", "/game/*","/play/*","/auth/isAdmin", "/account/*");
+        registrationBean.addUrlPatterns("/board/*", "/game/*","/play/*","/multiplex/*","/auth/isAdmin", "/account/*");
         registrationBean.setOrder(0);
         return registrationBean;
     }

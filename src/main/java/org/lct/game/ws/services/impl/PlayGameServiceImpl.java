@@ -341,7 +341,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                 draw.remove(square.getDroppedTile());
             }
         }
-        return new org.lct.game.ws.beans.view.Round(playGame.getId(), -1, boardGame, draw, null, null, lastRound.getDroppedWord());
+        return new org.lct.game.ws.beans.view.Round(playGame.getId(), -1, boardGame, draw, new ArrayList<DroppedTile>(), new ArrayList<DroppedTile>(), null, null, lastRound.getDroppedWord());
     }
 
     @Override
@@ -362,14 +362,34 @@ public class PlayGameServiceImpl implements PlayGameService {
         DateTime roundStartDate = gameStartDate.plus(duration);
         DateTime roundEndDate = roundStartDate.plusSeconds(playGame.getRoundTime());
         DroppedWord lastDroppedWord = null;
+        List<DroppedTile> oldTiles = new ArrayList<DroppedTile>();
         if( roundNumber > 1 ){
-            lastDroppedWord = playGame.getGame().getRoundList().get(roundNumber-2).getDroppedWord();
+            Round lastRound = playGame.getGame().getRoundList().get(roundNumber-2);
+            lastDroppedWord = lastRound.getDroppedWord();
+            for( Tile tile : lastRound.getDraw()){
+                oldTiles.add(new DroppedTile(tile, tile.getValue()));
+            }
+            for( Square square : lastDroppedWord.getSquareList()){
+                if ( square.getDroppedRound() == (roundNumber-2) ) {
+                    oldTiles.remove(square.getDroppedTile());
+                }
+            }
         }
         List<DroppedTile> draw = new ArrayList<DroppedTile>();
         for( Tile tile : round.getDraw()){
             draw.add(new DroppedTile(tile, tile.getValue()));
         }
-        return new org.lct.game.ws.beans.view.Round(playGame.getId(), roundNumber, boardGame, draw, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
+
+        List<DroppedTile> tempOld = new ArrayList<DroppedTile>(oldTiles);
+        List<DroppedTile> newTiles = new ArrayList<DroppedTile>();
+        for( DroppedTile droppedTile : draw){
+            if( tempOld.contains(droppedTile)){
+                tempOld.remove(droppedTile);
+            }else{
+                newTiles.add(droppedTile);
+            }
+        }
+        return new org.lct.game.ws.beans.view.Round(playGame.getId(), roundNumber, boardGame, draw, oldTiles, newTiles, roundStartDate.toDate(), roundEndDate.toDate(), lastDroppedWord);
     }
 
     /**
