@@ -63,5 +63,11 @@ public class MultiplexController {
         eventService.publishMultiplexRound(id, multiplexGameService.getRound(id, round));
     }
 
+    @RequestMapping(value="/game/{id}/message", method= RequestMethod.POST)
+    @ResponseStatus(value= HttpStatus.OK)
+    public void sendMessage(@PathVariable("id") String id, @RequestBody String message, @ModelAttribute User user){
+        eventService.displayToMultiplex(id, message);
+    }
+
 
 }

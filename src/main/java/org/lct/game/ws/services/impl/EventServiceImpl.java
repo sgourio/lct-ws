@@ -49,6 +49,7 @@ public class EventServiceImpl implements EventService {
     private static String chat = "/topic/chat/:chatId";
     private static String multiplexMetaData = "/topic/multiplex/:gameId/metadata";
     private static String multiplexRound = "/topic/multiplex/:gameId/round";
+    private static String toMultiplex = "/topic/multiplex/:gameId/message";
 
     private Set<String> alreadyConnect;
     private Set<User> userToConnect;
@@ -153,5 +154,11 @@ public class EventServiceImpl implements EventService {
         if( round != null ) {
             messagingTemplate.convertAndSend(multiplexRound.replace(":gameId", multiplexGameId), round);
         }
+    }
+
+    @Override
+    public void displayToMultiplex(String multiplexGameId, String message){
+        logger.info("Publish multiplex message " + multiplexGameId + " : " + message);
+        messagingTemplate.convertAndSend(toMultiplex.replace(":gameId", multiplexGameId), "{\"message\" : \""+message+"\"}");
     }
 }

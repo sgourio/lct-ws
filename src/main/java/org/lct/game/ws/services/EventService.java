@@ -35,4 +35,6 @@ public interface EventService {
     public void publishMultiplexMetaData(MultiplexGameMetaBean multiplexGameMetaBean);
 
     public void publishMultiplexRound(String multiplexGameId, org.lct.game.ws.beans.view.Round round);
+
+    public void displayToMultiplex(String multiplexGameId, String message);
 }
