@@ -6,8 +6,12 @@
 
 package org.lct.game.ws.services.impl;
 
+import org.apache.commons.lang3.CharUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
+import org.lct.dictionary.beans.*;
+import org.lct.dictionary.beans.Dictionary;
 import org.lct.game.ws.beans.PlayGameStatus;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.Round;
@@ -15,33 +19,41 @@ import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayRound;
 import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
-import org.lct.game.ws.beans.view.MultiplexGameMetaBean;
-import org.lct.game.ws.beans.view.PlayGameMetaBean;
-import org.lct.game.ws.beans.view.Word;
+import org.lct.game.ws.beans.model.multiplex.MultiplexPlayerScore;
+import org.lct.game.ws.beans.view.*;
+import org.lct.game.ws.dao.MultiplexPlayerScoreRepository;
 import org.lct.game.ws.dao.MultiplexRepository;
 import org.lct.game.ws.services.MultiplexGameService;
+import org.lct.game.ws.services.WordService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
 import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
 import org.lct.gameboard.ws.beans.view.DroppedTile;
 import org.lct.gameboard.ws.beans.view.DroppedWord;
 import org.lct.gameboard.ws.beans.view.Square;
+import org.lct.gameboard.ws.services.BoardService;
 import org.lct.gameboard.ws.services.impl.BoardGameTemplateEnum;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.cache.annotation.Cacheable;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 /**
  * Created by sgourio on 31/10/15.
  */
 public class MultiplexGameImpl implements MultiplexGameService{
 
+    private static final Logger logger = LoggerFactory.getLogger(MultiplexGameImpl.class);
     private final MultiplexRepository multiplexRepository;
+    private final MultiplexPlayerScoreRepository multiplexPlayerScoreRepository;
+    private final WordService wordService;
 
-    public MultiplexGameImpl(MultiplexRepository multiplexRepository) {
+
+    public MultiplexGameImpl(MultiplexRepository multiplexRepository, MultiplexPlayerScoreRepository multiplexPlayerScoreRepository, WordService wordService) {
         this.multiplexRepository = multiplexRepository;
+        this.multiplexPlayerScoreRepository = multiplexPlayerScoreRepository;
+        this.wordService = wordService;
     }
 
     @Override
@@ -194,4 +206,62 @@ public class MultiplexGameImpl implements MultiplexGameService{
     public MultiplexGameMetaBean getMultiplexGameMetaBean(String multiplexGameId){
         return getMultiplexGameMetaBean(multiplexRepository.findOne(multiplexGameId));
     }
+
+    @Override
+    public MultiplexPlayerScore saveScore(MultiplexPlayerScore multiplexPlayerScore) {
+        MultiplexPlayerScore result = this.multiplexPlayerScoreRepository.save(multiplexPlayerScore);
+        return result;
+    }
+
+    @Override
+    public List<MultiplexPlayerScore> getRoundScore(String multiplexId, int roundNumber) {
+        return this.multiplexPlayerScoreRepository.findByMultiplexIdAndRoundNumber(multiplexId, roundNumber);
+    }
+
+    @Override
+    public MultiplexPlayerScore getPlayerRoundScore(String multiplexId, int roundNumber, String name) {
+        return this.multiplexPlayerScoreRepository.findOneByMultiplexIdAndRoundNumberAndName(multiplexId, roundNumber, name);
+    }
+
+    @Override
+    public MultiplexPlayerScore getPlayerRoundScore(String playerScoreId) {
+        return this.multiplexPlayerScoreRepository.findOne(playerScoreId);
+    }
+
+
+    public WordResult word(String multiplexId, int roundNumber, String wordReference, Dictionary dictionary){
+        MultiplexGame multiplex = this.multiplexRepository.findOne(multiplexId);
+        if (multiplex != null) {
+            org.lct.game.ws.beans.view.Round round = this.getRound(multiplex, roundNumber);
+            return wordService.putWord(round, wordReference, dictionary);
+        }
+        return null;
+    }
+
+    @Override
+    public List<MultiplexPlayerTotalScoreBean> getRoundTotalScore(String multiplexId, int roundNumber){
+        List<MultiplexPlayerTotalScoreBean> result = new ArrayList<>();
+        List<MultiplexPlayerScore> multiplexPlayerScoreList =  this.multiplexPlayerScoreRepository.findByMultiplexIdAndRoundNumberLessThanEqualOrderByNameAsc(multiplexId, roundNumber);
+        Map<String, List<MultiplexPlayerScore>> playerScoreMap = new HashMap<String, List<MultiplexPlayerScore>>();
+        for( MultiplexPlayerScore multiplexPlayerScore : multiplexPlayerScoreList){
+            List<MultiplexPlayerScore> playerScores = playerScoreMap.get(multiplexPlayerScore.getName());
+            if( playerScores == null ){
+                playerScores = new ArrayList<>();
+                playerScoreMap.put(multiplexPlayerScore.getName(), playerScores);
+            }
+            playerScores.add(multiplexPlayerScore);
+        }
+
+        for(String name : playerScoreMap.keySet() ){
+            List<MultiplexPlayerScore> playerScores = playerScoreMap.get(name);
+            int total = 0;
+            for( MultiplexPlayerScore playerScore : playerScores ){
+                total += playerScore.getScore() + playerScore.getBonus();
+            }
+            result.add(new MultiplexPlayerTotalScoreBean(name, total));
+        }
+
+        return result;
+    }
+
 }

@@ -16,6 +16,7 @@ import org.lct.game.ws.beans.view.*;
 import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
+import org.lct.game.ws.services.WordService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
 import org.lct.gameboard.ws.beans.model.Tile;
 import org.lct.gameboard.ws.beans.view.BoardGame;
@@ -51,8 +52,9 @@ public class PlayGameServiceImpl implements PlayGameService {
     private final MonthlyScoreRepository monthlyScoreRepository;
     private final int nbPointsLimitToSaveScore;
     private final int nbPlayersLimitForBonus;
+    private final WordService wordService;
 
-    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository, MonthlyScoreRepository monthlyScoreRepository, int minPoints, int nbPlayerLimitForBonus) {
+    public PlayGameServiceImpl(PlayGameRepository playGameRepository, BoardService boardService, ConnectedUserRepository connectedUserRepository, SchedulerFactoryBean schedulerFactoryBean, EventService eventService, DictionaryService dictionaryService, PlayerRepository playerRepository, PlayerRoundRepository playerRoundRepository, ChatRepository chatRepository, MonthlyScoreRepository monthlyScoreRepository, int minPoints, int nbPlayerLimitForBonus, WordService wordService) {
         this.playGameRepository = playGameRepository;
         this.boardService = boardService;
         this.connectedUserRepository = connectedUserRepository;
@@ -65,6 +67,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         this.monthlyScoreRepository = monthlyScoreRepository;
         this.nbPointsLimitToSaveScore = minPoints;
         this.nbPlayersLimitForBonus = nbPlayerLimitForBonus;
+        this.wordService = wordService;
     }
 
     @Override
@@ -484,7 +487,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return nbDropped == 7;
     }
 
-    public WordResult result(Round round, List<DroppedWord> droppedWordList, Dictionary dictionary){
+    private WordResult result(Round round, List<DroppedWord> droppedWordList, Dictionary dictionary){
         List<Word> subWordList = new ArrayList<>();
         DroppedWord mainDroppedWord = droppedWordList.get(0);
         boolean valid = boardService.isValid(dictionaryService, dictionary, mainDroppedWord.getSquareList());
@@ -522,69 +525,13 @@ public class PlayGameServiceImpl implements PlayGameService {
         return true;
     }
 
-
-    /**
-     *  Get droppedWords in the game
-     * @param boardGame
-     * @param wordReference for example: MUT(I)EZ 	 3B
-     * @return
-     */
-    public List<DroppedWord> getDroppedWords(BoardGame boardGame, String wordReference){
-        List<DroppedWord> droppedWordList = new ArrayList<>();
-        String[] wordReferenceTab = wordReference.split("\t");
-        String serializedValue = wordReferenceTab[0];
-        String reference = wordReferenceTab[1];
-        if( serializedValue != null && reference != null ){
-            try {
-                int row = getRow(reference);
-                int column = getColumn(reference);
-                boolean horizontal = isHorizontal(reference);
-                if( !horizontal ){
-                    row = getColumn(reference);
-                    column = getRow(reference);
-                    boardGame = boardGame.transpose();
-                }
-
-                int currentColumn = column;
-                List<DroppedTile> droppedTileList = getDroppedTileList(serializedValue);
-                BoardGame activeBoardGame = boardGame;
-                int points = 0;
-                for( DroppedTile droppedTile : droppedTileList ){
-                    if( activeBoardGame.getSquares()[row][currentColumn].isEmpty() ) {
-                        activeBoardGame = activeBoardGame.dropTile(row, currentColumn, droppedTile);
-                        DroppedWord verticalWord = boardService.getVerticalWord(activeBoardGame, row, currentColumn);
-                        if( verticalWord.getSquareList().size() > 1 ) {
-                            if (!horizontal) {
-                                verticalWord = verticalWord.transpose();
-                            }
-                            droppedWordList.add(verticalWord);
-                            points += verticalWord.getPoints();
-                        }
-                    }
-                    currentColumn++;
-                }
-                DroppedWord horizontalWord = boardService.getHorizontalWord(activeBoardGame, row, column, points);
-                if( !horizontal ){
-                    horizontalWord = horizontalWord.transpose();
-                }
-                droppedWordList.add(0, horizontalWord);
-
-            } catch (Exception e) {
-                logger.error("",e);
-            }
-        }
-        return droppedWordList;
-    }
-
     public WordResult word(User user, String playGameId, DateTime atTime, String wordReference, Dictionary dictionary){
         WordResult wordResult = null;
         if( this.isHasSubscirbeGame(playGameId, user) ) {
             PlayGame playGame = this.getPlayGame(playGameId);
             if (playGame != null) {
                 org.lct.game.ws.beans.view.Round round = this.getRound(playGame, atTime);
-                BoardGame boardGame = round.getBoardGame();
-                List<DroppedWord> droppedWordList = getDroppedWords(boardGame, wordReference);
-                wordResult = result(playGame.getGame().getRoundList().get(round.getRoundNumber() - 1), droppedWordList, dictionary);
+                wordResult = wordService.putWord(round, wordReference, dictionary);
                 if (wordResult.getTotal() > 0) {
                     PlayerRound lastPlayed = playerRoundRepository.findByPlayGameIdAndUserIdAndRoundNumber(playGameId, user.getId(), round.getRoundNumber());
                     if (lastPlayed.getWord() == null || wordResult.getTotal() > lastPlayed.getWord().getPoints()) {
@@ -595,66 +542,6 @@ public class PlayGameServiceImpl implements PlayGameService {
             }
         }
         return wordResult;
-    }
-
-    private int getRow(String reference) throws Exception {
-        for( char c : reference.toCharArray()) {
-            if(CharUtils.isAsciiAlpha(c)) {
-                return "ABCDEFGHIJKLMNOPQRSTUVWXYZ".indexOf(c);
-            }
-        }
-        throw new Exception("No alpha numeric char in '"+ reference+"'");
-    }
-
-    private int getColumn(String reference) throws Exception{
-        String num = reference.replaceAll("[^0-9 ]", "");
-        if(StringUtils.isNumeric(num)){
-            return Integer.parseInt(num) - 1;
-        }
-        throw new Exception("No numeric part in '" + reference +"'");
-    }
-
-    private boolean isHorizontal(String reference){
-        return CharUtils.isAsciiAlpha(reference.toCharArray()[0]);
-    }
-
-    private List<DroppedTile> getDroppedTileList(String word){
-        List<DroppedTile> result = new ArrayList<>();
-        boolean wildcard = false;
-        for( char c : word.toCharArray()) {
-            if( c == '('){
-                wildcard = true;
-                continue;
-            }
-            if( c == ')'){
-                wildcard = false;
-                continue;
-            }
-            Tile tile;
-            if( wildcard ){
-                tile = Tile.WILDCARD;
-            }else{
-                tile = charToTile(c);
-            }
-
-            result.add(new DroppedTile(tile, String.valueOf(c)));
-        }
-        return result;
-    }
-
-    private Tile charToTile(char c){
-        try {
-            if( c == '?'){
-                return Tile.WILDCARD;
-            }else {
-                return (Tile) Tile.class.getDeclaredField(String.valueOf(c)).get(null);
-            }
-        } catch (NoSuchFieldException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     public GameScore getScores(PlayGame playGame, DateTime atTime){

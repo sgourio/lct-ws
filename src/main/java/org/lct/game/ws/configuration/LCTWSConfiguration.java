@@ -55,6 +55,9 @@ public class LCTWSConfiguration {
     @Autowired
     private MultiplexRepository multiplexRepository;
 
+    @Autowired
+    private MultiplexPlayerScoreRepository multiplexPlayerScoreRepository;
+
     @Value("${nb.points.limit.to.save.score}")
     private int nbPointsLimitToSaveScore;
 
@@ -77,7 +80,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public PlayGameService playGameService(){
-        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository, nbPointsLimitToSaveScore, nbPlayersLimitForBonus);
+        return new PlayGameServiceImpl(playGameRepository, boardService, connectedUserRepository, schedulerFactoryBean, eventService(), dictionaryService, playerRepository, playerRoundRepository, chatRepository, monthlyScoreRepository, nbPointsLimitToSaveScore, nbPlayersLimitForBonus, wordService());
     }
 
     @Bean
@@ -95,8 +98,15 @@ public class LCTWSConfiguration {
         return new UserServiceImpl(adminList);
     }
 
-    @Bean MultiplexGameService multiplexGameService() {
-        return new MultiplexGameImpl(multiplexRepository);
+    @Bean
+    public WordService wordService() {
+        return new WordServiceImpl(boardService, dictionaryService);
+    }
+
+
+    @Bean
+    public MultiplexGameService multiplexGameService() {
+        return new MultiplexGameImpl(multiplexRepository, multiplexPlayerScoreRepository, wordService());
     }
 
 }

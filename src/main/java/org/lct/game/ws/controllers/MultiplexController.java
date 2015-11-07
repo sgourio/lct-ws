@@ -7,11 +7,13 @@
 package org.lct.game.ws.controllers;
 
 import org.joda.time.DateTime;
+import org.lct.dictionary.beans.Dictionary;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
+import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
-import org.lct.game.ws.beans.view.MultiplexGameMetaBean;
-import org.lct.game.ws.beans.view.PreparedGame;
+import org.lct.game.ws.beans.model.multiplex.MultiplexPlayerScore;
+import org.lct.game.ws.beans.view.*;
 import org.lct.game.ws.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.MultiplexGameService;
@@ -19,6 +21,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sgourio on 31/10/15.
@@ -69,5 +74,35 @@ public class MultiplexController {
         eventService.displayToMultiplex(id, message);
     }
 
+    @RequestMapping(value="/game/{id}/score", method= RequestMethod.POST,  produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    public MultiplexPlayerScore sendScore(@RequestBody MultiplexPlayerScore multiplexPlayerScore, @ModelAttribute User user){
+        return multiplexGameService.saveScore(multiplexPlayerScore);
+    }
 
+    @RequestMapping(value="/game/{id}/score/{round}", method= RequestMethod.GET,  produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    public List<MultiplexPlayerScore> getRoundScore(@PathVariable("id") String id, @PathVariable("round") int round){
+        return multiplexGameService.getRoundScore(id, round);
+    }
+
+    @RequestMapping(value="/game/{id}/total/{round}", method= RequestMethod.GET,  produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    public List<MultiplexPlayerTotalScoreBean> getRoundTotalScore(@PathVariable("id") String id, @PathVariable("round") int round){
+        return multiplexGameService.getRoundTotalScore(id, round);
+    }
+
+    @RequestMapping(value="/game/{id}/word", method= RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public MultiplexPlayerScore putWord(@PathVariable("id") String multiplexGameId, @RequestBody MultiplexPuWord putWord, @ModelAttribute User user){
+        MultiplexPlayerScore result = null;
+        WordResult wordResult = multiplexGameService.word(multiplexGameId, putWord.getRoundNumber(), putWord.getWordReference(), Dictionary.french);
+        if( putWord.getId() != null ) {
+            result = multiplexGameService.getPlayerRoundScore(putWord.getId());
+        }
+        String id = result != null ? result.getId() : null;
+        result = multiplexGameService.saveScore(new MultiplexPlayerScore(id, multiplexGameId, putWord.getName(), putWord.getRoundNumber(), wordResult.getTotal(), wordResult.getWord(), putWord.getBonus() ));
+        return result;
+    }
 }
