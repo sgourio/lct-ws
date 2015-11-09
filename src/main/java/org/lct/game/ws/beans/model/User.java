@@ -8,6 +8,10 @@ package org.lct.game.ws.beans.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by sgourio on 03/06/15.
@@ -22,9 +26,12 @@ public class User {
     private final String email;
     private final String profilPictureURL;
     private final String profilLink;
+    @Indexed(unique = true)
     private final String nickname;
+    private final List<String> clubIds;
+    private final List<String> friendIds;
 
-    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink, @JsonProperty("nickname") String nickname) {
+    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink, @JsonProperty("nickname") String nickname, @JsonProperty("clubIds") List<String> clubIds, @JsonProperty("friendIds") List<String> friendIds) {
         this.token = token;
         this.name = name;
         this.email = email;
@@ -32,6 +39,8 @@ public class User {
         this.profilPictureURL = profilPictureURL;
         this.profilLink = profilLink;
         this.nickname = nickname;
+        this.clubIds = clubIds != null ? new ArrayList<String>(clubIds) : new ArrayList<String>();
+        this.friendIds = friendIds != null ? new ArrayList<String>(friendIds) : new ArrayList<String>();
     }
 
     public String getId() {
@@ -60,6 +69,14 @@ public class User {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public List<String> getClubIds() {
+        return clubIds;
+    }
+
+    public List<String> getFriendIds() {
+        return friendIds;
     }
 
     @Override

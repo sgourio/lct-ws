@@ -8,6 +8,7 @@ package org.lct.game.ws.beans.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 
 import java.util.Date;
 import java.util.List;
@@ -23,6 +24,7 @@ public class Game {
 
     private final String name;
     private final String lang;
+    @Indexed
     private final String authorId;
     private final String authorName;
     private final List<Round> roundList;

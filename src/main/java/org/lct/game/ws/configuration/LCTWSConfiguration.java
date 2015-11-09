@@ -58,6 +58,12 @@ public class LCTWSConfiguration {
     @Autowired
     private MultiplexPlayerScoreRepository multiplexPlayerScoreRepository;
 
+    @Autowired
+    private ClubRepository clubRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
     @Value("${nb.points.limit.to.save.score}")
     private int nbPointsLimitToSaveScore;
 
@@ -95,7 +101,7 @@ public class LCTWSConfiguration {
 
     @Bean
     public UserService userService(){
-        return new UserServiceImpl(adminList);
+        return new UserServiceImpl(userRepository, adminList);
     }
 
     @Bean
@@ -109,4 +115,8 @@ public class LCTWSConfiguration {
         return new MultiplexGameImpl(multiplexRepository, multiplexPlayerScoreRepository, wordService());
     }
 
+    @Bean
+    public ClubService clubService(){
+        return new ClubServiceImpl(clubRepository);
+    }
 }

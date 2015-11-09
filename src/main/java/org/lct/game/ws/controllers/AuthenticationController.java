@@ -34,6 +34,8 @@ package org.lct.game.ws.controllers;
     import org.springframework.web.bind.annotation.*;
 
     import java.io.IOException;
+    import java.util.ArrayList;
+    import java.util.List;
 
     /**
  * Created by sgourio on 03/06/15.
@@ -84,9 +86,13 @@ public class AuthenticationController {
         User user = userRepository.getUserByEmail(tokenInfo.getEmail());
         String userId = null;
         String nickname = null;
+        List<String> friendIds = new ArrayList<>();
+        List<String> clubIds = new ArrayList<>();
         if( user != null ){
             userId = user.getId();
             nickname = user.getNickname();
+            friendIds = user.getFriendIds();
+            clubIds = user.getClubIds();
         }
         if( nickname == null){
             nickname = userinfoplus.getGivenName() + RandomStringUtils.randomNumeric(8);
@@ -94,9 +100,9 @@ public class AuthenticationController {
                 nickname = userinfoplus.getName() + RandomStringUtils.randomNumeric(8);
             }
         }
-        user = new User(userId, null, userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
+        user = new User(userId, null, userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds);
         Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
-        user = new User(user.getId(), token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname);
+        user = new User(user.getId(), token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds);
         userRepository.save(user);
 
         return token;
@@ -114,9 +120,13 @@ public class AuthenticationController {
         User user = userRepository.getUserByEmail(facebookUser.getEmail());
         String userId = null;
         String nickname = null;
+        List<String> friendIds = new ArrayList<>();
+        List<String> clubIds = new ArrayList<>();
         if( user != null ){
             userId = user.getId();
             nickname = user.getNickname();
+            friendIds = user.getFriendIds();
+            clubIds = user.getClubIds();
         }
         if( nickname == null){
             nickname = facebookUser.getFirstName() + RandomStringUtils.randomNumeric(8);
@@ -124,9 +134,9 @@ public class AuthenticationController {
                 nickname = facebookUser.getName() + RandomStringUtils.randomNumeric(8);
             }
         }
-        user = new User(userId, null, facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
+        user = new User(userId, null, facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds);
         Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
-        user = new User(user.getId(), token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname);
+        user = new User(user.getId(), token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds);
 
         userRepository.save(user);
 

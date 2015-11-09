@@ -77,7 +77,7 @@ public class AccountController {
         if( existing != null && !existing.getId().equals(user.getId())){
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
-        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), nickname);
+        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), nickname, user.getClubIds(), user.getFriendIds());
         u = userRepository.save(u);
         eventService.registrerUser(u);
         return new ResponseEntity(HttpStatus.OK);
