@@ -17,6 +17,7 @@ import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.view.ClubBean;
 import org.lct.game.ws.beans.view.UserBean;
 import org.lct.game.ws.services.ClubService;
+import org.lct.game.ws.services.MailService;
 import org.lct.game.ws.services.UserService;
 import org.lct.game.ws.services.exceptions.IncompleteGameException;
 import org.slf4j.Logger;
@@ -41,12 +42,15 @@ public class ClubController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MailService mailService;
+
     @RequestMapping(value="", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public String create(@RequestBody String name, @ModelAttribute User user) throws IncompleteGameException {
         logger.info("save club " + name +"...");
-        Club club = clubService.create(name, DateTime.now());
+        Club club = clubService.create(name, DateTime.now(), user.getId());
         userService.subscribeClub(user, club.getId());
         return club.getId();
     }
@@ -89,17 +93,17 @@ public class ClubController {
         if( club == null ){
             return null;
         }
-        User invited = null;
+        User invited;
         if( EmailValidator.getInstance().isValid(email) ){
             invited = userService.findByEmail(email);
             if( invited == null ){
                 logger.info("Create a new user " + email +" invited by " + user);
                 invited = userService.createUser(email);
+                mailService.invite(user.getName(), email);
             }
         }else{
             invited = userService.findByNickname(email);
         }
-
 
         if( invited != null ) {
             userService.subscribeClub(invited, id);
@@ -117,6 +121,6 @@ public class ClubController {
         for( User user : userList ){
             userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
         }
-        return new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId());
+        return new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId(), club.getAdmins());
     }
 }

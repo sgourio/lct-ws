@@ -13,6 +13,7 @@ import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.dao.ClubRepository;
 import org.lct.game.ws.services.ClubService;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -27,9 +28,11 @@ public class ClubServiceImpl implements ClubService{
     }
 
     @Override
-    public Club create(String name, DateTime atTime) {
+    public Club create(String name, DateTime atTime, String adminId) {
         if( this.clubRepository.findByName(name) == null ) {
-            final Club club = new Club(null, atTime.toDate(), name, ClubStatus.created.name());
+            List<String> admins = new ArrayList<>();
+            admins.add(adminId);
+            final Club club = new Club(null, atTime.toDate(), name, ClubStatus.created.name(), admins);
             return this.clubRepository.save(club);
         }
         return null;
@@ -40,7 +43,7 @@ public class ClubServiceImpl implements ClubService{
     public Club activate(String clubId) {
         final Club club = this.clubRepository.findOne(clubId);
         if( club != null ){
-            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), club.getName(), ClubStatus.activated.name()));
+            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), club.getName(), ClubStatus.activated.name(), club.getAdmins()));
         }
         return null;
     }
@@ -49,7 +52,7 @@ public class ClubServiceImpl implements ClubService{
     public Club suspend(String clubId) {
         final Club club = this.clubRepository.findOne(clubId);
         if( club != null ){
-            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), club.getName(), ClubStatus.suspended.name()));
+            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), club.getName(), ClubStatus.suspended.name(), club.getAdmins()));
         }
         return null;
     }
@@ -63,7 +66,7 @@ public class ClubServiceImpl implements ClubService{
     public Club rename(String clubId, String newName) {
         final Club club = this.clubRepository.findOne(clubId);
         if( club != null ){
-            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), newName, club.getStatus()));
+            return this.clubRepository.save(new Club(club.getId(), club.getCreationDate(), newName, club.getStatus(), club.getAdmins()));
         }
         return null;
     }
@@ -81,5 +84,19 @@ public class ClubServiceImpl implements ClubService{
     @Override
     public List<Club> findByUser(User user){
         return this.clubRepository.findByIdInOrderByNameAsc(user.getClubIds());
+    }
+
+    @Override
+    public boolean isAdmin(String userId, String clubId) {
+        Club club = this.clubRepository.findOne(clubId);
+        if( club != null ){
+            return isAdmin(userId, club);
+        }
+        return false;
+    }
+
+    @Override
+    public boolean isAdmin(String userId, Club club) {
+        return club.getAdmins().contains(userId);
     }
 }

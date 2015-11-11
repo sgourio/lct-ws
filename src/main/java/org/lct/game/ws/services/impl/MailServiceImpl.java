@@ -43,4 +43,23 @@ public class MailServiceImpl implements MailService{
             logger.error("Le message de " + sender +" : " + msgBody );
         }
     }
+
+    public void invite(String fromName, String emailTo){
+        Properties props = new Properties();
+        props.put("mail.smtp.host", "127.0.0.1");
+        Session session = Session.getDefaultInstance(props, null);
+        String msgBody = "Bonjour,\r\n" + fromName + " vous invite à jouer au Scrabble Duplicate sur Lettre Compte Triple.\r\nCe jeu est gratuit et convivial.\r\nNous vous invitons à la découvrir sur http://www.lettrecomptetriple.fr.\r\nA bientôt!";
+        try {
+            Message msg = new MimeMessage(session);
+            msg.setFrom(new InternetAddress("aude@lettrecomptetriple.fr"));
+            msg.addRecipient(Message.RecipientType.TO, new InternetAddress(emailTo));
+            msg.addRecipient(Message.RecipientType.BCC, new InternetAddress("sylvain.gourio@lettrecomptetriple.fr", "Sylvain Gourio"));
+            msg.setSubject("Invitation sur Lettre Compte Triple");
+            msg.setText(msgBody);
+            Transport.send(msg);
+            logger.info("Envoi d'un message d'invitaiton à " + emailTo );
+        } catch (Exception e) {
+            logger.error("Erreur a l'envoi de mail", e);
+        }
+    }
 }

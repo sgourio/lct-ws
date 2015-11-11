@@ -17,4 +17,12 @@ public interface MailService {
      * @param sender
      */
     public void send(String message, String sender);
+
+
+    /**
+     * Send an invite
+     * @param fromName
+     * @param emailTo
+     */
+    public void invite(String fromName, String emailTo);
 }

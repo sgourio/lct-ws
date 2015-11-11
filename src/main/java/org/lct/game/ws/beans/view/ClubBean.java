@@ -19,13 +19,15 @@ public class ClubBean {
     private final String name;
     private final String status; // created, activated, suspended
     private final List<UserBean> userList;
+    private final List<String> admins;
 
-    public ClubBean(List<UserBean> userList, String status, String name, Date creationDate, String id) {
+    public ClubBean(List<UserBean> userList, String status, String name, Date creationDate, String id, List<String> admins) {
         this.userList = userList;
         this.status = status;
         this.name = name;
         this.creationDate = creationDate;
         this.id = id;
+        this.admins = admins;
     }
 
     public String getId() {
@@ -46,5 +48,9 @@ public class ClubBean {
 
     public List<UserBean> getUserList() {
         return userList;
+    }
+
+    public List<String> getAdmins() {
+        return admins;
     }
 }

@@ -25,7 +25,7 @@ public interface ClubService {
      * @param atTime
      * @return
      */
-    public Club create(String name, DateTime atTime);
+    public Club create(String name, DateTime atTime, String adminId);
 
     /**
      * Activate a club
@@ -78,5 +78,8 @@ public interface ClubService {
      * @return
      */
     public List<Club> findByUser(User user);
+
+    public boolean isAdmin(String userId, String clubId);
+    public boolean isAdmin(String userId, Club club);
 
 }

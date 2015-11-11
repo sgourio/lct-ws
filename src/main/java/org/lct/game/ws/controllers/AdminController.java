@@ -59,7 +59,7 @@ public class AdminController {
             for (User user : userList) {
                 userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
             }
-            result.add(new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId()));
+            result.add(new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId(), club.getAdmins()));
         }
         return result;
     }
