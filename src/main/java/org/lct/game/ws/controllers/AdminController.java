@@ -77,4 +77,15 @@ public class AdminController {
     public Club suspendClub(@PathVariable("id") String id){
         return clubService.suspend(id);
     }
+
+    @RequestMapping(value="/club/{id}", method= RequestMethod.DELETE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public void deleteClub(@PathVariable("id") String id){
+        clubService.delete(id);
+        List<User> userList = userService.findUserListByClub(id);
+        for (User user : userList) {
+            userService.unsubscribeClub(user, id);
+        }
+    }
 }

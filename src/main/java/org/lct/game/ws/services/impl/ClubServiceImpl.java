@@ -55,6 +55,11 @@ public class ClubServiceImpl implements ClubService{
     }
 
     @Override
+    public void delete(String clubId) {
+        this.clubRepository.delete(clubId);
+    }
+
+    @Override
     public Club rename(String clubId, String newName) {
         final Club club = this.clubRepository.findOne(clubId);
         if( club != null ){

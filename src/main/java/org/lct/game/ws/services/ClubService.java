@@ -43,6 +43,13 @@ public interface ClubService {
     public Club suspend(String clubId);
 
     /**
+     * Suspend a club
+     * @param clubId
+     * @return
+     */
+    public void delete(String clubId);
+
+    /**
      * rename a club
      * @param clubId
      * @param newName

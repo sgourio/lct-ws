@@ -16,4 +16,10 @@ public interface UserService {
     public User unsubscribeClub(User user, String clubId);
 
     public List<User> findUserListByClub(String clubId);
+
+    public User findByNickname(String nickname);
+
+    public User findByEmail(String email);
+
+    public User createUser(String email);
 }

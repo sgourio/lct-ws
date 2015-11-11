@@ -10,6 +10,7 @@ package org.lct.game.ws.controllers;
  * Created by sgourio on 08/11/15.
  */
 
+import org.apache.commons.validator.routines.EmailValidator;
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.Club;
 import org.lct.game.ws.beans.model.User;
@@ -65,15 +66,7 @@ public class ClubController {
     @ResponseBody
     public ClubBean getClub(@PathVariable("id") String id, @ModelAttribute User owner){
         Club club = clubService.findById(id);
-        if( club == null ){
-            return null;
-        }
-        List<User> userList = userService.findUserListByClub(id);
-        List<UserBean> userBeanList = new ArrayList<>();
-        for( User user : userList ){
-            userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
-        }
-        return new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId());
+        return clubBeanMapper(club);
     }
 
     @RequestMapping(value="", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -83,14 +76,47 @@ public class ClubController {
         List<ClubBean> result = new ArrayList<>();
         List<Club> clubList = clubService.findByUser(owner);
         for( Club club : clubList ) {
-            List<User> userList = userService.findUserListByClub(club.getId());
-            List<UserBean> userBeanList = new ArrayList<>();
-            for (User user : userList) {
-                userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
-            }
-            result.add(new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId()));
+            result.add(clubBeanMapper(club));
         }
         return result;
     }
 
+    @RequestMapping(value="/{id}/user", method= RequestMethod.POST, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public ClubBean inviteUser(@PathVariable("id") String id, @RequestBody String email, @ModelAttribute User user){
+        Club club = clubService.findById(id);
+        if( club == null ){
+            return null;
+        }
+        User invited = null;
+        if( EmailValidator.getInstance().isValid(email) ){
+            invited = userService.findByEmail(email);
+            if( invited == null ){
+                logger.info("Create a new user " + email +" invited by " + user);
+                invited = userService.createUser(email);
+            }
+        }else{
+            invited = userService.findByNickname(email);
+        }
+
+
+        if( invited != null ) {
+            userService.subscribeClub(invited, id);
+        }
+        return clubBeanMapper(club);
+    }
+
+
+    private ClubBean clubBeanMapper(Club club){
+        if( club == null ){
+            return null;
+        }
+        List<User> userList = userService.findUserListByClub(club.getId());
+        List<UserBean> userBeanList = new ArrayList<>();
+        for( User user : userList ){
+            userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
+        }
+        return new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId());
+    }
 }
