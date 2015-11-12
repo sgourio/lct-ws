@@ -47,7 +47,7 @@ public class MultiplexController {
     @ResponseBody
     public String openGame(@RequestBody PreparedGame preparedGame, @ModelAttribute User user){
         Game game = gameService.getById(preparedGame.getGameId());
-        MultiplexGame multiplexGame = multiplexGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user, DateTime.now());
+        MultiplexGame multiplexGame = multiplexGameService.openGame(game, preparedGame.getClubId(), preparedGame.getGameName(), preparedGame.getRoundTime(), user, DateTime.now());
         return multiplexGame.getId();
     }
 

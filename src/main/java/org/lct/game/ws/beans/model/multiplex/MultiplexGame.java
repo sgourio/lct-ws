@@ -25,6 +25,7 @@ public class MultiplexGame {
     private final Game game;
     private final String name;
     private final Date creationDate;
+    private final String clubId;
     private final Date startDate;
     private final Date endDate;
     private final String owner;
@@ -33,11 +34,12 @@ public class MultiplexGame {
     private final String status; // created, running, ended,
     private final int roundTime; // seconds
 
-    public MultiplexGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") String owner, @JsonProperty("administratorsIds") List<String> administratorsIds,  @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+    public MultiplexGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("clubId") String clubId, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") String owner, @JsonProperty("administratorsIds") List<String> administratorsIds,  @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
         this.id = id;
         this.game = game;
         this.name = name;
         this.creationDate = creationDate != null ? (Date) creationDate.clone() : null;
+        this.clubId = clubId;
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
         this.endDate = endDate != null ? (Date) endDate.clone() : null;
         this.owner = owner;
@@ -65,6 +67,10 @@ public class MultiplexGame {
 
     public Date getStartDate() {
         return startDate;
+    }
+
+    public String getClubId() {
+            return clubId;
     }
 
     public Date getEndDate() {

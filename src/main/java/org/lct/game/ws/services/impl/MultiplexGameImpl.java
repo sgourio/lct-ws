@@ -57,7 +57,7 @@ public class MultiplexGameImpl implements MultiplexGameService{
     }
 
     @Override
-    public MultiplexGame openGame(Game game, String name, int roundTime, User user, DateTime atTime) {
+    public MultiplexGame openGame(Game game, String clubId, String name, int roundTime, User user, DateTime atTime) {
         List<String> admnistratorsIds = new ArrayList<String>();
         admnistratorsIds.add(user.getId());
         List<PlayRound> playRoundList = new ArrayList<PlayRound>(game.getRoundList().size());
@@ -68,7 +68,7 @@ public class MultiplexGameImpl implements MultiplexGameService{
             Word word = new Word(droppedWord.getValue(), droppedWord.getReference(), droppedWord.getPoints(), true, isScrabble(droppedWord));
             playRoundList.add( new PlayRound(word, total) );
         }
-        MultiplexGame multiplexGame = new MultiplexGame(null, game, name, atTime.toDate(), null, null, user.getNickname(), admnistratorsIds, playRoundList, PlayGameStatus.opened.getId(), roundTime);
+        MultiplexGame multiplexGame = new MultiplexGame(null, game, name, atTime.toDate(), clubId, null, null, user.getNickname(), admnistratorsIds, playRoundList, PlayGameStatus.opened.getId(), roundTime);
         multiplexGame = multiplexRepository.save(multiplexGame);
         return multiplexGame;
     }

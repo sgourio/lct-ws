@@ -10,11 +10,13 @@ public class PreparedGame {
     private final String gameId;
     private final String gameName;
     private final int roundTime;
+    private final String clubId;
 
-    public PreparedGame(@JsonProperty("gameId") String gameId, @JsonProperty("gameName") String gameName, @JsonProperty("roundTime") int roundTime) {
+    public PreparedGame(@JsonProperty("gameId") String gameId, @JsonProperty("gameName") String gameName, @JsonProperty("roundTime") int roundTime, @JsonProperty("clubId") String clubId) {
         this.gameId = gameId;
         this.gameName = gameName;
         this.roundTime = roundTime;
+        this.clubId = clubId;
     }
 
     public String getGameId() {
@@ -27,5 +29,9 @@ public class PreparedGame {
 
     public int getRoundTime() {
         return roundTime;
+    }
+
+    public String getClubId() {
+        return clubId;
     }
 }

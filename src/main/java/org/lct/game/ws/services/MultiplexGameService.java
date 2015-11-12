@@ -23,7 +23,7 @@ import java.util.List;
  */
 public interface MultiplexGameService {
 
-    public MultiplexGame openGame(Game game, String name, int roundTime, User user, DateTime atTime);
+    public MultiplexGame openGame(Game game, String clubId, String name, int roundTime, User user, DateTime atTime);
 
     public org.lct.game.ws.beans.view.Round getRound(MultiplexGame multiplexGame, int roundNumber);
     public org.lct.game.ws.beans.view.Round getRound(String multiplexGameId, int roundNumber);
