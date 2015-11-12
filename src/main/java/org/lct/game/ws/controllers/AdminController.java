@@ -1,12 +1,11 @@
 package org.lct.game.ws.controllers;
 
 import org.lct.game.ws.beans.ClubStatus;
-import org.lct.game.ws.beans.model.Club;
-import org.lct.game.ws.beans.model.Game;
-import org.lct.game.ws.beans.model.User;
+import org.lct.game.ws.beans.model.*;
 import org.lct.game.ws.beans.view.ClubBean;
 import org.lct.game.ws.beans.view.GameMetaBean;
 import org.lct.game.ws.beans.view.UserBean;
+import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.services.ClubService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.UserService;
@@ -18,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -38,6 +38,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private ChatRepository chatRepository;
 
     @RequestMapping(value="/generate", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
@@ -87,5 +90,15 @@ public class AdminController {
         for (User user : userList) {
             userService.unsubscribeClub(user, id);
         }
+    }
+
+    @RequestMapping(value="/chat", method= RequestMethod.DELETE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public void cleanChat(){
+        List<ChatMessage> chatMessageList = new ArrayList<ChatMessage>();
+        chatMessageList.add(new ChatMessage("Sylvain & Aude", new Date(), "Bienvenue sur LCT, passez un bon moment, un moment scrabblesque!"));
+        Chat chat = new Chat("1", new Date(), chatMessageList);
+        chatRepository.save(chat);
     }
 }
