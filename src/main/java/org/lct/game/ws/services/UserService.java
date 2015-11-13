@@ -21,5 +21,12 @@ public interface UserService {
 
     public User findByEmail(String email);
 
+    public List<User> searchByName(String name);
+
     public User createUser(String email);
+
+    public User addFriend(User user, String friendId);
+
+    public User removeFriend(User user, String friendId);
+
 }

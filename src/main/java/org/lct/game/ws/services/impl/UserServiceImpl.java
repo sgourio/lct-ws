@@ -74,4 +74,22 @@ public class UserServiceImpl implements UserService{
     public User createUser(String email) {
         return userRepository.save(new User(null, null, null, email, null, null, email, new ArrayList<String>(), new ArrayList<String>()));
     }
+
+    @Override
+    public User addFriend(User user, String friendId) {
+        user.getFriendIds().add(friendId);
+        return userRepository.save(new User(user.getId(),user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds()));
+    }
+
+    @Override
+    public User removeFriend(User user, String friendId) {
+        user.getFriendIds().remove(friendId);
+        return userRepository.save(new User(user.getId(),user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds()));
+
+    }
+
+    @Override
+    public List<User> searchByName(String name) {
+        return userRepository.findFirst10ByNicknameContainingOrEmailContainingOrNameContaining(name, name, name);
+    }
 }

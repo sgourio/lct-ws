@@ -48,7 +48,7 @@ public class MailServiceImpl implements MailService{
         Properties props = new Properties();
         props.put("mail.smtp.host", "127.0.0.1");
         Session session = Session.getDefaultInstance(props, null);
-        String msgBody = "Bonjour,\r\n" + fromName + " vous invite à jouer au Scrabble Duplicate sur Lettre Compte Triple.\r\nCe jeu est gratuit et convivial.\r\nNous vous invitons à la découvrir sur http://www.lettrecomptetriple.fr.\r\nA bientôt!";
+        String msgBody = "Bonjour,\r\n" + fromName + " vous invite à jouer au Scrabble Duplicate sur Lettre Compte Triple.\r\nCe jeu est gratuit et convivial.\r\nVenez le découvrir sur http://www.lettrecomptetriple.fr.\r\nA bientôt!";
         try {
             Message msg = new MimeMessage(session);
             msg.setFrom(new InternetAddress("aude@lettrecomptetriple.fr"));

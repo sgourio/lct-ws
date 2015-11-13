@@ -20,5 +20,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     public User getUserByEmail(String email);
     public User getUserByNickname(String nickname);
     public List<User> findByClubIdsContaining(String clubId);
+    public List<User> findFirst10ByNicknameContainingOrEmailContainingOrNameContaining(String nickname, String email, String name);
 
 }
