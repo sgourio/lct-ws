@@ -6,6 +6,7 @@
 
 package org.lct.game.ws.services.impl;
 
+import org.apache.commons.lang3.StringUtils;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.dao.UserRepository;
 import org.lct.game.ws.services.UserService;
@@ -77,6 +78,9 @@ public class UserServiceImpl implements UserService{
 
     @Override
     public User addFriend(User user, String friendId) {
+        if(StringUtils.isEmpty(friendId) || user.getFriendIds().contains( friendId ) || user.getId().equals(friendId)){
+            return user;
+        }
         user.getFriendIds().add(friendId);
         return userRepository.save(new User(user.getId(),user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds()));
     }
@@ -91,5 +95,15 @@ public class UserServiceImpl implements UserService{
     @Override
     public List<User> searchByName(String name) {
         return userRepository.findFirst10ByNicknameContainingOrEmailContainingOrNameContaining(name, name, name);
+    }
+
+    @Override
+    public List<User> findFriends(User user) {
+        return userRepository.findByIdIn(user.getFriendIds());
+    }
+
+    @Override
+    public List<User> findUserByIdIn(List<String> ids) {
+        return userRepository.findByIdIn(ids);
     }
 }

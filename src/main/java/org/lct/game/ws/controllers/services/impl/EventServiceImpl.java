@@ -1,4 +1,4 @@
-package org.lct.game.ws.services.impl;
+package org.lct.game.ws.controllers.services.impl;
 
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.Chat;
@@ -7,13 +7,13 @@ import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
-import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
 import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.MultiplexGameMetaBean;
 import org.lct.game.ws.beans.view.PlayGameMetaBean;
+import org.lct.game.ws.controllers.services.MapperService;
 import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.dao.ConnectedUserRepository;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,6 +39,9 @@ public class EventServiceImpl implements EventService {
 
     @Autowired
     private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private MapperService mapperService;
 
     private static String gamerList = "/topic/gamerList";
     private static String playerList = "/topic/game/:gameId/players";
@@ -117,7 +120,8 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public void publishMetaData(PlayGameMetaBean playGameMetaBean){
+    public void publishMetaData(PlayGame playGame){
+        PlayGameMetaBean playGameMetaBean = mapperService.toPlayGameMetaBean(playGame, DateTime.now());
         logger.info("Publish meta " + playGameMetaBean.getPlayGameId());
         messagingTemplate.convertAndSend(metadata.replace(":gameId" ,playGameMetaBean.getPlayGameId()), playGameMetaBean);
     }

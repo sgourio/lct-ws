@@ -4,7 +4,7 @@ import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.view.GameScore;
 import org.lct.game.ws.beans.view.Round;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
 import org.quartz.InterruptableJob;
 import org.quartz.JobExecutionContext;
@@ -49,7 +49,7 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
         boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
         if ( isFinished) {
             PlayGame endedGame = playGameService.endGame(playGame);
-            this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(endedGame));
+            this.eventService.publishMetaData(endedGame);
             try {
                 context.getScheduler().interrupt(context.getFireInstanceId());
             } catch (UnableToInterruptJobException e) {
@@ -60,7 +60,7 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
             if (round != null) {
                 if (round.getRoundNumber() == 1) {
                     playGame = playGameService.startPlayGame(playGame);
-                    this.eventService.publishMetaData(playGameService.getPlayGameMetaBean(playGame));
+                    this.eventService.publishMetaData(playGame);
                 }
                 logger.info("update timer " + playGameService.getTimer(playGame));
                 this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));

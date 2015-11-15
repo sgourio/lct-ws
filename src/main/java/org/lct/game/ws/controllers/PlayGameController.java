@@ -9,8 +9,9 @@ import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.gaming.PlayerGame;
 import org.lct.game.ws.beans.view.*;
+import org.lct.game.ws.controllers.services.MapperService;
 import org.lct.game.ws.dao.ChatRepository;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.PlayGameService;
 import org.lct.game.ws.services.UserService;
@@ -19,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -48,6 +50,9 @@ public class PlayGameController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MapperService mapperService;
+
     /**
      * Open a game for playing ( the game is not started yet, but it is available to enter in )
      * @param preparedGame game attributes
@@ -59,7 +64,7 @@ public class PlayGameController {
     @ResponseBody
     public String openGame(@RequestBody PreparedGame preparedGame, @ModelAttribute User user){
         Game game = gameService.getById(preparedGame.getGameId());
-        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user, DateTime.now());
+        PlayGame playGame = playGameService.openGame(game, preparedGame.getGameName(), preparedGame.getRoundTime(), user, DateTime.now(), preparedGame.getAuthorizedUserIds());
         return playGame.getId();
     }
 
@@ -78,6 +83,8 @@ public class PlayGameController {
             DateTime startAt = new DateTime(toStartGame.getStartDate());
             startAt = startAt.withMillisOfSecond(0);
             PlayGame result = playGameService.setUpGame(playGame, startAt);
+            this.eventService.publishMetaData(result);
+            this.eventService.publishTimer(result, playGameService.getTimer(result));
             return result.getId();
         }
         return null;
@@ -92,7 +99,7 @@ public class PlayGameController {
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public List<PlayGameMetaBean> getActualPlayGameList(){
-        return playGameService.getActualPlayGame();
+        return mapperService.toPlayGameMetaBean(playGameService.getActualPlayGame(), DateTime.now());
     }
 
     /**
@@ -103,7 +110,7 @@ public class PlayGameController {
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public PlayGameMetaBean getPlayGameMetaBean(@PathVariable("id") String id, @ModelAttribute User user){
-        return playGameService.getPlayGameMetaBean(id);
+        return mapperService.toPlayGameMetaBean(playGameService.getPlayGame(id), DateTime.now());
     }
 
     /**
@@ -113,13 +120,16 @@ public class PlayGameController {
     @RequestMapping(value="/game/{id}/join", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public String joinGame(@PathVariable("id") String id, @ModelAttribute User user){
-        // TODO check autorisation
-        PlayGame playGame = playGameService.joinGame(id, user, DateTime.now());
+    public ResponseEntity<String> joinGame(@PathVariable("id") String id, @ModelAttribute User user){
+        PlayGame playGame = playGameService.getPlayGame(id);
+        if(playGame.getAuthorizedUserIds().size() > 0 && !playGame.getAuthorizedUserIds().contains(user.getId()) ){
+            return new ResponseEntity<String>("Restricted game. You do not have access to it", HttpStatus.FORBIDDEN);
+        }
+        playGame = playGameService.joinGame(id, user, DateTime.now());
         if( playGame != null ) {
             eventService.publishPlayers(playGame, playGameService.getPlayerListForGame(id));
         }
-        return "joined";
+        return new ResponseEntity<String>(HttpStatus.OK);
     }
 
     /**
@@ -129,13 +139,16 @@ public class PlayGameController {
     @RequestMapping(value="/game/{id}/quit", method= RequestMethod.GET, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public String quitGame(@PathVariable("id") String id, @ModelAttribute User user){
-        // TODO check autorisation
-        PlayGame playGame = playGameService.quitGame(id, user);
+    public ResponseEntity<String> quitGame(@PathVariable("id") String id, @ModelAttribute User user){
+        PlayGame playGame = playGameService.getPlayGame(id);
+        if(playGame.getAuthorizedUserIds().size() > 0 && !playGame.getAuthorizedUserIds().contains(user.getId()) ){
+            return new ResponseEntity<String>("Restricted game. You do not have access to it", HttpStatus.FORBIDDEN);
+        }
+        playGame = playGameService.quitGame(id, user);
         if( playGame != null ) {
             eventService.publishPlayers(playGame, playGameService.getPlayerListForGame(playGame.getId()));
         }
-        return "quited";
+        return new ResponseEntity<String>(HttpStatus.OK);
     }
 
     /**

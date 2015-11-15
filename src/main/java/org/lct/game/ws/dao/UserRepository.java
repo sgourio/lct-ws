@@ -9,6 +9,7 @@ package org.lct.game.ws.dao;
 import org.lct.game.ws.beans.model.User;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -21,5 +22,6 @@ public interface UserRepository extends MongoRepository<User, String> {
     public User getUserByNickname(String nickname);
     public List<User> findByClubIdsContaining(String clubId);
     public List<User> findFirst10ByNicknameContainingOrEmailContainingOrNameContaining(String nickname, String email, String name);
+    public List<User> findByIdIn(Collection<String> ids);
 
 }

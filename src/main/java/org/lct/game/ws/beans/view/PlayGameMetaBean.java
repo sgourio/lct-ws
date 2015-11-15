@@ -1,6 +1,8 @@
 package org.lct.game.ws.beans.view;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 /**
  * Meta data of game beeing played
@@ -20,8 +22,9 @@ public class PlayGameMetaBean {
     private final String status;
     private final Date startDate;
     private final Date endDate;
+    private final List<UserBean> authorizedUserList;
 
-    public PlayGameMetaBean(String playGameId, String name, String owner, String creator, String creatorId, String templateName, int numberOfRound, int timeByRound, int actualRoundNumber, int nbPlayers, String status, Date startDate, Date endDate) {
+    public PlayGameMetaBean(String playGameId, String name, String owner, String creator, String creatorId, String templateName, int numberOfRound, int timeByRound, int actualRoundNumber, int nbPlayers, String status, Date startDate, Date endDate, List<UserBean> authorizedUserList) {
         this.playGameId = playGameId;
         this.name = name;
         this.owner = owner;
@@ -35,6 +38,7 @@ public class PlayGameMetaBean {
         this.status = status;
         this.startDate = startDate != null ? (Date) startDate.clone() : null;
         this.endDate = endDate != null ? (Date) endDate.clone() : null;
+        this.authorizedUserList = authorizedUserList != null? new ArrayList<>(authorizedUserList) : new ArrayList<UserBean>();
     }
 
     public String getPlayGameId() {
@@ -87,5 +91,9 @@ public class PlayGameMetaBean {
 
     public String getTemplateName() {
         return templateName;
+    }
+
+    public List<UserBean> getAuthorizedUserList() {
+        return authorizedUserList;
     }
 }

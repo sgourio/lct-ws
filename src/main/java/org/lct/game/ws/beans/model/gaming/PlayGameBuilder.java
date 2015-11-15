@@ -23,6 +23,7 @@ public class PlayGameBuilder {
     private List<PlayRound> playRoundList;
     private String status;
     private int roundTime;
+    private List<String> authorizedUserIds = new ArrayList<>();
 
     public PlayGameBuilder() {
     }
@@ -37,6 +38,7 @@ public class PlayGameBuilder {
         this.playRoundList = new ArrayList<>(playGame.getPlayRoundList());
         this.status = playGame.getStatus();
         this.roundTime = playGame.getRoundTime();
+        this.authorizedUserIds = playGame.getAuthorizedUserIds();
     }
 
     public PlayGameBuilder setGame(Game game) {
@@ -79,9 +81,18 @@ public class PlayGameBuilder {
         return this;
     }
 
+    public PlayGameBuilder addAuthorizedUserIds(String authorizedUserId) {
+        this.authorizedUserIds.add(authorizedUserId);
+        return this;
+    }
+    public PlayGameBuilder setAuthorizedUserIds(List<String> authorizedUserIds) {
+        this.authorizedUserIds.addAll(authorizedUserIds);
+        return this;
+    }
+
     public PlayGame createPlayGame() {
         Date endDate = startDate != null ? new DateTime(startDate).plusSeconds(roundTime * playRoundList.size()).toDate() : null;
-        return new PlayGame(id, game, name, creationDate, startDate, endDate, owner, playRoundList, status, roundTime);
+        return new PlayGame(id, game, name, creationDate, startDate, endDate, owner, playRoundList, status, roundTime, authorizedUserIds);
     }
 
 

@@ -6,17 +6,12 @@
 
 package org.lct.game.ws.filters;
 
-import com.nimbusds.jose.JOSEException;
-import com.nimbusds.jwt.ReadOnlyJWTClaimsSet;
 import org.apache.commons.lang3.StringUtils;
-import org.lct.game.ws.beans.model.ConnectedUserBean;
 import org.lct.game.ws.beans.model.User;
-import org.lct.game.ws.dao.ConnectedUserRepository;
 import org.lct.game.ws.dao.UserRepository;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestAttributes;
@@ -30,8 +25,6 @@ import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.ParseException;
-import java.util.Date;
 
 /**
  * Created by sgourio on 03/06/15.

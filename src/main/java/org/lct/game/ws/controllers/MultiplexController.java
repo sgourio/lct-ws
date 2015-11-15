@@ -10,11 +10,10 @@ import org.joda.time.DateTime;
 import org.lct.dictionary.beans.Dictionary;
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.User;
-import org.lct.game.ws.beans.model.gaming.PlayGame;
 import org.lct.game.ws.beans.model.multiplex.MultiplexGame;
 import org.lct.game.ws.beans.model.multiplex.MultiplexPlayerScore;
 import org.lct.game.ws.beans.view.*;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.MultiplexGameService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,7 +21,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /**

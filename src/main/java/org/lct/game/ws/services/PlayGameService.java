@@ -27,7 +27,7 @@ public interface PlayGameService {
      * @param user owner of the PlayGame
      * @return PlayGame with status opened
      */
-    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime);
+    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime, List<String> authorizedUserIds);
     public PlayGame openAutoGame(Game game, String name, int roundTime, DateTime atTime);
 
     /**
@@ -60,6 +60,8 @@ public interface PlayGameService {
      */
     public org.lct.game.ws.beans.view.Round getRound(PlayGame playGame, DateTime atTime);
 
+    public int getRoundNumber(PlayGame playGame, DateTime atTime);
+
     public org.lct.game.ws.beans.view.Round getEndedRound(PlayGame playGame);
     /**
      * Get a round of playGame by its number
@@ -73,16 +75,7 @@ public interface PlayGameService {
      * Get playGame with status opened and status running
      * @return a PlayGameMetaBean list
      */
-    public List<PlayGameMetaBean> getActualPlayGame();
-
-    /**
-     * Get playGameMetaBean from playGame with id
-     * @param playGameId
-     * @return
-     */
-    public PlayGameMetaBean getPlayGameMetaBean(String playGameId);
-    public PlayGameMetaBean getPlayGameMetaBean(PlayGame playGame);
-
+    public List<PlayGame> getActualPlayGame();
 
     /**
      * User join the game

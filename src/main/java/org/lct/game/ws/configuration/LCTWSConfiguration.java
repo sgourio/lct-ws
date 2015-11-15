@@ -7,6 +7,10 @@
 package org.lct.game.ws.configuration;
 
 import org.lct.dictionary.services.DictionaryService;
+import org.lct.game.ws.controllers.services.EventService;
+import org.lct.game.ws.controllers.services.MapperService;
+import org.lct.game.ws.controllers.services.impl.EventServiceImpl;
+import org.lct.game.ws.controllers.services.impl.MapperServiceImpl;
 import org.lct.game.ws.dao.*;
 import org.lct.game.ws.services.*;
 import org.lct.game.ws.services.impl.*;
@@ -118,5 +122,10 @@ public class LCTWSConfiguration {
     @Bean
     public ClubService clubService(){
         return new ClubServiceImpl(clubRepository);
+    }
+
+    @Bean
+    public MapperService mapperService(){
+        return new MapperServiceImpl();
     }
 }

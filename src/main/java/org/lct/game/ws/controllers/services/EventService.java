@@ -1,4 +1,4 @@
-package org.lct.game.ws.services;
+package org.lct.game.ws.controllers.services;
 
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.model.gaming.PlayGame;
@@ -24,7 +24,7 @@ public interface EventService {
 
     public void publishRound(PlayGame playGame, Round round);
 
-    public void publishMetaData(PlayGameMetaBean playGameMetaBean);
+    public void publishMetaData(PlayGame playGame);
 
     public void publishScores(PlayGame playGame, GameScore gameScore);
 

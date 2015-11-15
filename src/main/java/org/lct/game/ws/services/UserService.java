@@ -29,4 +29,8 @@ public interface UserService {
 
     public User removeFriend(User user, String friendId);
 
+    public List<User> findFriends(User user);
+
+    public List<User> findUserByIdIn(List<String> ids);
+
 }

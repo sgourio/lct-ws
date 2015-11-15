@@ -71,15 +71,15 @@ public class AutoGameLauncherJob extends QuartzJobBean {
         DateTime endOf2min = null;
         DateTime endOf3min = null;
 
-        List<PlayGameMetaBean> actualPlayGameMetaBeanList = playGameService.getActualPlayGame();
-        for( PlayGameMetaBean playGameMetaBean : actualPlayGameMetaBeanList ){
+        List<PlayGame> actualPlayGameMetaBeanList = playGameService.getActualPlayGame();
+        for( PlayGame playGameMetaBean : actualPlayGameMetaBeanList ){
             if( playGameMetaBean.getOwner().equals("auto") &&
                     (playGameMetaBean.getName().equals("Blitz")
                             || playGameMetaBean.getName().equals("Rapide")
                             || playGameMetaBean.getName().equals("La 2 minutes")
                             || playGameMetaBean.getName().equals("Comme en tournois") ) ) {
                 if (PlayGameStatus.opened.getId().equals(playGameMetaBean.getStatus())) {
-                    switch (playGameMetaBean.getTimeByRound()) {
+                    switch (playGameMetaBean.getRoundTime()) {
                         case 75:
                             next75s = true;
                             break;
@@ -95,7 +95,7 @@ public class AutoGameLauncherJob extends QuartzJobBean {
                     }
                 } else if (PlayGameStatus.running.getId().equals(playGameMetaBean.getStatus())) {
                     DateTime endDate = new DateTime(playGameMetaBean.getEndDate());
-                    switch (playGameMetaBean.getTimeByRound()) {
+                    switch (playGameMetaBean.getRoundTime()) {
                         case 75:
                             endOf75s = endDate;
                             break;

@@ -5,6 +5,7 @@ import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.Game;
 import org.springframework.data.annotation.Id;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -25,9 +26,10 @@ public class PlayGame {
     private final List<PlayRound> playRoundList;
     private final String status; // opened, running, ended,
     private final int roundTime; // seconds
+    private final List<String> authorizedUserIds; // if empty, game is opened to every one
 
 
-    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") String owner, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime) {
+    public PlayGame(@JsonProperty("id") String id, @JsonProperty("game") Game game, @JsonProperty("name") String name, @JsonProperty("creationDate") Date creationDate, @JsonProperty("startDate") Date startDate, @JsonProperty("endDate") Date endDate, @JsonProperty("owner") String owner, @JsonProperty("playRoundList") List<PlayRound> playRoundList, @JsonProperty("status") String status, @JsonProperty("roundTime") int roundTime, @JsonProperty("authorizedUserIds") List<String> authorizedUserIds) {
         this.id = id;
         this.game = game;
         this.name = name;
@@ -38,6 +40,7 @@ public class PlayGame {
         this.playRoundList = playRoundList;
         this.status = status;
         this.roundTime = roundTime;
+        this.authorizedUserIds = authorizedUserIds != null ? new ArrayList<>(authorizedUserIds) : new ArrayList<String>();
     }
 
     public String getId() {
@@ -83,6 +86,10 @@ public class PlayGame {
 
     public Date getEndDate() {
         return endDate != null ? (Date) endDate.clone() : null;
+    }
+
+    public List<String> getAuthorizedUserIds() {
+        return authorizedUserIds;
     }
 
     @Override

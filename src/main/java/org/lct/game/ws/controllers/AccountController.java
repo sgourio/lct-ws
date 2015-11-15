@@ -7,12 +7,12 @@
 package org.lct.game.ws.controllers;
 
 import org.joda.time.DateTime;
-import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
 import org.lct.game.ws.beans.view.UserBean;
+import org.lct.game.ws.controllers.services.MapperService;
 import org.lct.game.ws.dao.UserRepository;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.MailService;
 import org.lct.game.ws.services.ScoreService;
 import org.lct.game.ws.services.UserService;
@@ -25,8 +25,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -53,11 +51,14 @@ public class AccountController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private MapperService mapperService;
+
     @RequestMapping(value="/me", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public UserBean getUser(@ModelAttribute User user) throws Exception{
-        return toUserBean(user);
+        return mapperService.toUserBean(user);
     }
 
     @RequestMapping(value="/me/scores", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -89,6 +90,13 @@ public class AccountController {
         return new ResponseEntity(HttpStatus.OK);
     }
 
+    @RequestMapping(value="/friend", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public List<UserBean> getFriend(@ModelAttribute User user) throws Exception{
+        return mapperService.toUserBean(userService.findFriends(user));
+    }
+
     @RequestMapping(value="/friend", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
@@ -97,10 +105,10 @@ public class AccountController {
         return "ok";
     }
 
-    @RequestMapping(value="/friend", method= RequestMethod.DELETE, produces = MediaType.TEXT_PLAIN_VALUE)
+    @RequestMapping(value="/friend/{id}", method= RequestMethod.DELETE, produces = MediaType.TEXT_PLAIN_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
-    public String removeFriend(@ModelAttribute User user, @RequestBody String friendId) throws Exception{
+    public String removeFriend(@ModelAttribute User user, @PathVariable("id") String friendId) throws Exception{
         userService.removeFriend(user, friendId);
         return "ok";
     }
@@ -110,18 +118,8 @@ public class AccountController {
     @ResponseBody
     public List<UserBean> searchUser(@ModelAttribute User user, @RequestBody String name) throws Exception{
 
-        return toUserBean(userService.searchByName(name));
+        return mapperService.toUserBean(userService.searchByName(name));
     }
 
-    private UserBean toUserBean(User user){
-        return new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname());
-    }
 
-    private List<UserBean> toUserBean(List<User> userList){
-        List<UserBean> result = new ArrayList<UserBean>();
-        for(User user : userList ){
-            result.add(toUserBean(user));
-        }
-        return result;
-    }
 }

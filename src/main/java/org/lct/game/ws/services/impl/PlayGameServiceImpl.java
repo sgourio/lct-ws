@@ -1,7 +1,5 @@
 package org.lct.game.ws.services.impl;
 
-import org.apache.commons.lang3.CharUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.Duration;
 import org.joda.time.format.DateTimeFormatter;
@@ -14,7 +12,7 @@ import org.lct.game.ws.beans.model.Round;
 import org.lct.game.ws.beans.model.gaming.*;
 import org.lct.game.ws.beans.view.*;
 import org.lct.game.ws.dao.*;
-import org.lct.game.ws.services.EventService;
+import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.PlayGameService;
 import org.lct.game.ws.services.WordService;
 import org.lct.gameboard.ws.beans.model.BoardGameTemplate;
@@ -71,8 +69,8 @@ public class PlayGameServiceImpl implements PlayGameService {
     }
 
     @Override
-    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime) {
-        PlayGame playGame = openGame(game, name, roundTime, user.getNickname(), atTime);
+    public PlayGame openGame(Game game, String name, int roundTime, User user, DateTime atTime, List<String> authorizedUserIds) {
+        PlayGame playGame = openGame(game, name, roundTime, user.getNickname(), atTime, authorizedUserIds);
         if( !game.getAuthorId().equals(user.getId()) ) {
             joinGame(playGame.getId(), user, atTime);
         }
@@ -81,11 +79,11 @@ public class PlayGameServiceImpl implements PlayGameService {
 
     @Override
     public PlayGame openAutoGame(Game game, String name, int roundTime, DateTime atTime) {
-        PlayGame playGame = openGame(game, name, roundTime, "auto", atTime);
+        PlayGame playGame = openGame(game, name, roundTime, "auto", atTime, new ArrayList<String>());
         return playGame;
     }
 
-    private PlayGame openGame(Game game, String name, int roundTime, String owner, DateTime atTime) {
+    private PlayGame openGame(Game game, String name, int roundTime, String owner, DateTime atTime, List<String> authorizedUserIds) {
         List<PlayRound> playRoundList = new ArrayList<>(game.getRoundList().size());
         int total = 0;
         for( Round round : game.getRoundList()){
@@ -101,6 +99,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                 .setOwner(owner)
                 .setPlayRoundList(playRoundList)
                 .setStatus(PlayGameStatus.opened.getId())
+                .setAuthorizedUserIds(authorizedUserIds)
                 .setRoundTime(roundTime).createPlayGame();
         playGame = playGameRepository.save(playGame);
         logger.info("Game '" + name + "'opened by " + owner);
@@ -118,8 +117,6 @@ public class PlayGameServiceImpl implements PlayGameService {
             PlayGame startedGame = playGameBuilder.createPlayGame();
 
             startedGame = playGameRepository.save(startedGame);
-            this.eventService.publishMetaData(getPlayGameMetaBean(startedGame));
-            this.eventService.publishTimer(startedGame, getTimer(startedGame));
             scheduleGame(startedGame);
             return startedGame;
         }else{
@@ -241,7 +238,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return atTime.isAfter(new DateTime(playGame.getStartDate()).plusSeconds(playGame.getRoundTime() * playGame.getPlayRoundList().size()));
     }
 
-    public List<PlayGameMetaBean> getActualPlayGame(){
+    public List<PlayGame> getActualPlayGame(){
         List<PlayGame> playGameList = playGameRepository.findByStatus(PlayGameStatus.opened.getId());
         playGameList.addAll(playGameRepository.findByStatus(PlayGameStatus.running.getId()));
         Collections.sort(playGameList, new Comparator<PlayGame>() {
@@ -268,41 +265,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                 return Integer.valueOf(o1.getRoundTime()).compareTo( Integer.valueOf(o2.getRoundTime()) );
             }
         });
-        return playGameToPlayGameMetaBean(playGameList);
-    }
-
-    private List<PlayGameMetaBean> playGameToPlayGameMetaBean(List<PlayGame> playGameList){
-        List<PlayGameMetaBean> result = new ArrayList<>(playGameList.size());
-        for( PlayGame playGame : playGameList){
-            result.add(playGameToPlayGameMetaBean(playGame));
-        }
-        return result;
-    }
-
-    private PlayGameMetaBean playGameToPlayGameMetaBean(PlayGame playGame){
-        Date endDate = null;
-        int actualRoundNumber = 0;
-        if( playGame.getStartDate() != null ) {
-            DateTime startDate = new DateTime(playGame.getStartDate());
-            endDate = startDate.plusSeconds(playGame.getRoundTime() * playGame.getPlayRoundList().size()).toDate();
-            DateTime now = new DateTime();
-            if( now.isAfter(startDate)) {
-                actualRoundNumber = getRoundNumber(playGame, now);
-            }
-        }
-        return new PlayGameMetaBean(playGame.getId(),
-                playGame.getName(),
-                playGame.getOwner(),
-                playGame.getGame().getAuthorName(),
-                playGame.getGame().getAuthorId(),
-                playGame.getGame().getName(),
-                playGame.getPlayRoundList().size(),
-                playGame.getRoundTime(),
-                actualRoundNumber,
-                getPlayerListForGame(playGame.getId()).size(),
-                playGame.getStatus(),
-                playGame.getStartDate(),
-                endDate);
+        return playGameList;
     }
 
     @Override
@@ -313,6 +276,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return getRound(playGame, getRoundNumber(playGame, atTime));
     }
 
+    @Override
     public int getRoundNumber(PlayGame playGame, DateTime atTime){
         DateTime startedDateTime = new DateTime(playGame.getStartDate());
         if( startedDateTime.isAfter(atTime)){
@@ -423,15 +387,7 @@ public class PlayGameServiceImpl implements PlayGameService {
         return Math.abs(countDown);
     }
 
-    @Override
-    public PlayGameMetaBean getPlayGameMetaBean(String playGameId){
-        return getPlayGameMetaBean(playGameRepository.findOne(playGameId));
-    }
 
-    @Override
-    public PlayGameMetaBean getPlayGameMetaBean(PlayGame playGame){
-        return playGameToPlayGameMetaBean(playGame);
-    }
 
     @Override
     public PlayGame joinGame(String playGameId, User user, DateTime dateTime){
