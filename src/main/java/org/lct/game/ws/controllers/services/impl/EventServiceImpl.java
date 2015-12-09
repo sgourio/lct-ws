@@ -74,7 +74,7 @@ public class EventServiceImpl implements EventService {
         for( User user : toConnect) {
             logger.info(user.getName() +" (" + user.getNickname()  + ") is actif");
             long count = connectedUserRepository.count();
-            connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getNickname(), new Date()));
+            connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getNickname(), new Date(), user.getProfilPictureURL()));
             if (count != connectedUserRepository.count()) {
                 messagingTemplate.convertAndSend(gamerList, connectedUserRepository.findAll());
             }

@@ -15,13 +15,15 @@ public class ConnectedUserBean {
 
     private final String name;
     private final Date registredDate;
+    private final String pictureURL;
 
-    public ConnectedUserBean(String id, String name, Date registredDate) {
+    public ConnectedUserBean(String id, String name, Date registredDate, String pictureURL) {
         this.id = id;
         this.name = name;
         Date d = new Date();
         d.setTime(registredDate.getTime());
         this.registredDate = d;
+        this.pictureURL  = pictureURL;
     }
 
     public String getId() {
@@ -36,5 +38,9 @@ public class ConnectedUserBean {
         Date d = new Date();
         d.setTime(registredDate.getTime());
         return d;
+    }
+
+    public String getPictureURL() {
+        return pictureURL;
     }
 }
