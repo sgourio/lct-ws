@@ -81,6 +81,8 @@ public class AuthenticationController {
                 .setApplicationName("LCT")
                 .build();
         Tokeninfo tokenInfo = oauth2.tokeninfo().setAccessToken(tokenResponse.getAccessToken()).execute();
+        logger.info("Login " + tokenInfo.getEmail());
+
         Userinfoplus userinfoplus = oauth2.userinfo().v2().me().get().execute();
 
         User user = userRepository.getUserByEmail(tokenInfo.getEmail());
@@ -93,6 +95,8 @@ public class AuthenticationController {
             nickname = user.getNickname();
             friendIds = user.getFriendIds();
             clubIds = user.getClubIds();
+        }else{
+            logger.info("Create user " + userinfoplus.getEmail() +" / " + userinfoplus.getName());
         }
         if( nickname == null){
             nickname = userinfoplus.getGivenName() + RandomStringUtils.randomNumeric(8);
@@ -117,6 +121,7 @@ public class AuthenticationController {
         FacebookClient facebookUserClient = new DefaultFacebookClient(accessToken.getAccessToken(), Version.VERSION_2_3);
         com.restfb.types.User facebookUser = facebookUserClient.fetchObject("me", com.restfb.types.User.class);
 
+        logger.info("Login " + facebookUser.getEmail());
         User user = userRepository.getUserByEmail(facebookUser.getEmail());
         String userId = null;
         String nickname = null;

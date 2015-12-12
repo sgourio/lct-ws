@@ -72,7 +72,7 @@ public class EventServiceImpl implements EventService {
         Set<User> toConnect = new HashSet<User>(userToConnect);
         userToConnect = new HashSet<User>();
         for( User user : toConnect) {
-            logger.info(user.getName() +" (" + user.getNickname()  + ") is actif");
+            logger.info(user.getName() +" (" + user.getNickname()  + ") is connected");
             long count = connectedUserRepository.count();
             connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getNickname(), new Date(), user.getProfilPictureURL()));
             if (count != connectedUserRepository.count()) {
@@ -122,13 +122,13 @@ public class EventServiceImpl implements EventService {
     @Override
     public void publishMetaData(PlayGame playGame){
         PlayGameMetaBean playGameMetaBean = mapperService.toPlayGameMetaBean(playGame, DateTime.now());
-        logger.info("Publish meta " + playGameMetaBean.getPlayGameId());
+        //logger.info("Publish meta " + playGameMetaBean.getPlayGameId());
         messagingTemplate.convertAndSend(metadata.replace(":gameId" ,playGameMetaBean.getPlayGameId()), playGameMetaBean);
     }
 
     @Override
     public void publishScores(PlayGame playGame, GameScore gameScore){
-        logger.info("Publish score " + playGame.getName());
+        //logger.info("Publish score " + playGame.getName());
         messagingTemplate.convertAndSend(scores.replace(":gameId" ,playGame.getId()), gameScore);
     }
 
@@ -149,7 +149,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void publishMultiplexMetaData(MultiplexGameMetaBean multiplexGameMetaBean){
-        logger.info("Publish multiplex meta " + multiplexGameMetaBean.getMultiplexGameId());
+        //logger.info("Publish multiplex meta " + multiplexGameMetaBean.getMultiplexGameId());
         messagingTemplate.convertAndSend(multiplexMetaData.replace(":gameId", multiplexGameMetaBean.getMultiplexGameId()), multiplexGameMetaBean);
     }
 
@@ -162,7 +162,7 @@ public class EventServiceImpl implements EventService {
 
     @Override
     public void displayToMultiplex(String multiplexGameId, String message){
-        logger.info("Publish multiplex message " + multiplexGameId + " : " + message);
+        //logger.info("Publish multiplex message " + multiplexGameId + " : " + message);
         messagingTemplate.convertAndSend(toMultiplex.replace(":gameId", multiplexGameId), "{\"message\" : \""+message+"\"}");
     }
 }
