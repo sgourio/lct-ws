@@ -66,6 +66,9 @@ public class LCTWSConfiguration {
     private ClubRepository clubRepository;
 
     @Autowired
+    private ArticleRepository articleRepository;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Value("${nb.points.limit.to.save.score}")
@@ -127,5 +130,10 @@ public class LCTWSConfiguration {
     @Bean
     public MapperService mapperService(){
         return new MapperServiceImpl();
+    }
+
+    @Bean
+    public ArticleService articleService(){
+        return new ArticleServiceImpl(articleRepository);
     }
 }
