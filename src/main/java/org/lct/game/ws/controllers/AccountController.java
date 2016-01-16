@@ -6,6 +6,8 @@
 
 package org.lct.game.ws.controllers;
 
+import com.google.api.client.http.MultipartContent;
+import org.apache.commons.codec.binary.Base64;
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
@@ -19,12 +21,20 @@ import org.lct.game.ws.services.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletContext;
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.Part;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.util.List;
 
 /**
@@ -121,5 +131,46 @@ public class AccountController {
         return mapperService.toUserBean(userService.searchByName(name));
     }
 
+    @Value("${image.profil.folder}")
+    private String uploadPath;
 
+    @RequestMapping(value="/user/picture", method= RequestMethod.POST, produces = MediaType.TEXT_PLAIN_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public String uploadPicture(@ModelAttribute User user, @RequestBody byte[] photo, HttpServletRequest request) throws Exception{
+        logger.info("test");
+        byte[] b = photo;
+        File ph = File.createTempFile("photo", "");
+        OutputStream os = new FileOutputStream(ph);
+        os.write(b);
+        os.flush();
+        os.close();
+
+        File directory = new File(uploadPath + "/" + user.getId());
+        if( !directory.exists() ){
+            directory.mkdirs();
+        }
+
+
+        String suffix = request.getContentType().substring(request.getContentType().indexOf("/")+1);
+        File newFile = new File(uploadPath + "/" + user.getId() + "/profil." +  suffix);
+        if( newFile.exists() ){
+            newFile.delete();
+        }
+        logger.info("Image path : " + newFile.getAbsolutePath());
+
+        ph.renameTo(newFile);
+        ph.delete();
+
+        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/account/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
+        u = userRepository.save(u);
+        return "ok";
+    }
+
+    @RequestMapping(value="/picture/{userId}/{pictureName}.png", method= RequestMethod.GET, produces = MediaType.IMAGE_PNG_VALUE)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public File uploadPicture(@ModelAttribute User user, @PathVariable("userId") String userId, @PathVariable("pictureName") String pictureName) throws Exception{
+        return new File(uploadPath+"/"+ userId + "/" + pictureName +".png");
+    }
 }
