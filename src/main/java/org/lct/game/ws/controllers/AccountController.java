@@ -8,6 +8,8 @@ package org.lct.game.ws.controllers;
 
 import com.google.api.client.http.MultipartContent;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
@@ -153,6 +155,7 @@ public class AccountController {
 
 
         String suffix = request.getContentType().substring(request.getContentType().indexOf("/")+1);
+
         File newFile = new File(uploadPath + "/" + user.getId() + "/profil." +  suffix);
         if( newFile.exists() ){
             newFile.delete();
@@ -162,15 +165,11 @@ public class AccountController {
         ph.renameTo(newFile);
         ph.delete();
 
-        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/account/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
+        suffix = suffix + "?r=" + RandomStringUtils.randomAlphabetic(3);
+        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
         u = userRepository.save(u);
         return "ok";
     }
 
-    @RequestMapping(value="/picture/{userId}/{pictureName}.png", method= RequestMethod.GET, produces = MediaType.IMAGE_PNG_VALUE)
-    @ResponseStatus(value= HttpStatus.OK)
-    @ResponseBody
-    public File uploadPicture(@ModelAttribute User user, @PathVariable("userId") String userId, @PathVariable("pictureName") String pictureName) throws Exception{
-        return new File(uploadPath+"/"+ userId + "/" + pictureName +".png");
-    }
+
 }
