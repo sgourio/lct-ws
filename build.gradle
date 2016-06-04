@@ -16,7 +16,7 @@ apply plugin: 'maven'
 
 jar {
     baseName = 'lct-ws'
-    version =  '1.00.01'
+    version =  '1.00.02'
 }
 
 repositories {
