@@ -140,7 +140,6 @@ public class AccountController {
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public String uploadPicture(@ModelAttribute User user, @RequestBody byte[] photo, HttpServletRequest request) throws Exception{
-        logger.info("test");
         byte[] b = photo;
         File ph = File.createTempFile("photo", "");
         OutputStream os = new FileOutputStream(ph);
@@ -160,7 +159,8 @@ public class AccountController {
         if( newFile.exists() ){
             newFile.delete();
         }
-        logger.info("Image path : " + newFile.getAbsolutePath());
+        logger.info("Image path : " + ph.getAbsolutePath());
+        logger.info("Rename to : " + newFile.getAbsolutePath());
 
         ph.renameTo(newFile);
         ph.delete();
