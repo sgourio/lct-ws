@@ -8,6 +8,7 @@ package org.lct.game.ws.controllers;
 
 import com.google.api.client.http.MultipartContent;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
@@ -159,12 +160,11 @@ public class AccountController {
         if( newFile.exists() ){
             newFile.delete();
         }
-        logger.info("Image path : " + ph.getAbsolutePath());
-        logger.info("Rename to : " + newFile.getAbsolutePath());
+        logger.info("Image path : " + newFile.getAbsolutePath());
+        FileUtils.copyFile(ph, newFile);
 
-        if ( ph.renameTo(newFile) ) {
-            ph.delete();
-        }
+        ph.delete();
+
 
         suffix = suffix + "?r=" + RandomStringUtils.randomAlphabetic(3);
         User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
