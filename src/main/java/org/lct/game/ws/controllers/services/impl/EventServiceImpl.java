@@ -54,9 +54,7 @@ public class EventServiceImpl implements EventService {
     private static String multiplexRound = "/topic/multiplex/:gameId/round";
     private static String toMultiplex = "/topic/multiplex/:gameId/message";
 
-    private Set<String> alreadyConnect;
     private Set<User> userToConnect;
-    private Set<PlayGame> playGameSet;
 
     public EventServiceImpl() {
         userToConnect = new HashSet<User>();
@@ -72,7 +70,7 @@ public class EventServiceImpl implements EventService {
         Set<User> toConnect = new HashSet<User>(userToConnect);
         userToConnect = new HashSet<User>();
         for( User user : toConnect) {
-            logger.info(user.getName() +" (" + user.getNickname()  + ") is connected");
+            //logger.info(user.getName() +" (" + user.getNickname()  + ") is connected");
             long count = connectedUserRepository.count();
             connectedUserRepository.save(new ConnectedUserBean(user.getId(), user.getNickname(), new Date(), user.getProfilPictureURL()));
             if (count != connectedUserRepository.count()) {
@@ -81,16 +79,8 @@ public class EventServiceImpl implements EventService {
         }
     }
 
-    @Scheduled(fixedRate = 2000)
-    public void alreadyConnectUser(){
-        Set<String> connected = new HashSet<>();
-        for(ConnectedUserBean connectedUserBean : connectedUserRepository.findAll()){
-            connected.add(connectedUserBean.getId());
-        }
-        alreadyConnect = connected;
-    }
 
-    @Scheduled(fixedRate = 2000)
+    @Scheduled(fixedRate = 10000)
     public void disconnectUser() {
         DateTime dateTime = new DateTime();
         Date expireLimit = dateTime.minusMinutes(30).toDate();
