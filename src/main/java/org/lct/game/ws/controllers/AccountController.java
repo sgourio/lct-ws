@@ -162,8 +162,9 @@ public class AccountController {
         logger.info("Image path : " + ph.getAbsolutePath());
         logger.info("Rename to : " + newFile.getAbsolutePath());
 
-        ph.renameTo(newFile);
-        ph.delete();
+        if ( ph.renameTo(newFile) ) {
+            ph.delete();
+        }
 
         suffix = suffix + "?r=" + RandomStringUtils.randomAlphabetic(3);
         User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
