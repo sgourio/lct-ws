@@ -8,6 +8,7 @@ package org.lct.game.ws.services.impl;
 
 import org.lct.game.ws.beans.model.Game;
 import org.lct.game.ws.beans.view.GameMetaBean;
+import org.lct.game.ws.dao.GameRepository;
 import org.lct.game.ws.services.GameService;
 import org.quartz.JobExecutionContext;
 import org.quartz.JobExecutionException;
@@ -23,6 +24,7 @@ public class AutoCreateGameJob  extends QuartzJobBean  {
 
     private boolean running = false;
     private GameService gameService;
+    private GameRepository gameRepository;
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
@@ -30,6 +32,8 @@ public class AutoCreateGameJob  extends QuartzJobBean  {
             running = true;
             try {
                 Game game = gameService.generate();
+                this.gameRepository.insert(game);
+                logger.info("Save new generated game named " + game.getName());
                 GameMetaBean gameMetaBean = gameService.gameToGameMeta(game);
                 logger.info("Game created: " + gameMetaBean.getName() + " : " + gameMetaBean.getRounds() + " rounds " + gameMetaBean.getMaxScore() + " pts");
             }catch (Exception e){
@@ -43,5 +47,9 @@ public class AutoCreateGameJob  extends QuartzJobBean  {
 
     public void setGameService(GameService gameService) {
         this.gameService = gameService;
+    }
+
+    public void setGameRepository(GameRepository gameRepository) {
+        this.gameRepository = gameRepository;
     }
 }

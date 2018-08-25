@@ -227,8 +227,6 @@ public class GameServiceImpl implements GameService{
         }
         String name = "#" + this.gameRepository.count();
         Game game = new Game(name, "fr", roundList,"auto", "auto", new Date());
-        this.gameRepository.insert(game);
-        logger.info("Save new generated game named " + name);
         return game;
     }
 
@@ -341,6 +339,7 @@ public class GameServiceImpl implements GameService{
     private JobDetail buildJobDetail(){
         JobDataMap jobDataMap = new JobDataMap();
         jobDataMap.put("gameService", this);
+        jobDataMap.put("gameRepository", this.gameRepository);
         JobDetail jobDetail = JobBuilder.newJob(AutoCreateGameJob.class).setJobData(jobDataMap).build();
         return jobDetail;
     }

@@ -6,6 +6,7 @@ import org.lct.game.ws.beans.view.ClubBean;
 import org.lct.game.ws.beans.view.GameMetaBean;
 import org.lct.game.ws.beans.view.UserBean;
 import org.lct.game.ws.dao.ChatRepository;
+import org.lct.game.ws.dao.GameRepository;
 import org.lct.game.ws.services.ClubService;
 import org.lct.game.ws.services.GameService;
 import org.lct.game.ws.services.UserService;
@@ -42,11 +43,16 @@ public class AdminController {
     @Autowired
     private ChatRepository chatRepository;
 
+    @Autowired
+    private GameRepository gameRepository;
+
     @RequestMapping(value="/generate", method= RequestMethod.GET, produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public GameMetaBean generate(){
         Game game = gameService.generate();
+        this.gameRepository.insert(game);
+        logger.info("Save new generated game named " + game.getName());
         return gameService.gameToGameMeta(game);
     }
 

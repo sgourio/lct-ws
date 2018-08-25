@@ -62,7 +62,6 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
                     playGame = playGameService.startPlayGame(playGame);
                     this.eventService.publishMetaData(playGame);
                 }
-                logger.info("update timer " + playGameService.getTimer(playGame));
                 this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
             }
             logger.info("Game " + playGame + ", round " + round);
