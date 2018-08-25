@@ -52,9 +52,9 @@ public class WordServiceImpl implements WordService {
         DroppedWord mainDroppedWord = droppedWordList.get(0);
         boolean valid = boardService.isValid(dictionaryService, dictionary, mainDroppedWord.getSquareList());
         boolean scrabble = isScrabble(mainDroppedWord);
-        Word mainWord = new Word(mainDroppedWord.getValue(), mainDroppedWord.getReference(), mainDroppedWord.getPoints(), valid, scrabble);
         int total = mainDroppedWord.getPoints();
         boolean validTurn = valid;
+        int sumOtherWords = 0;
         for( int i = 1 ; i < droppedWordList.size() ; i++){
             DroppedWord droppedWord = droppedWordList.get(i);
             valid = boardService.isValid(dictionaryService, dictionary, droppedWord.getSquareList());
@@ -62,6 +62,7 @@ public class WordServiceImpl implements WordService {
             if( !valid ){
                 validTurn = false;
             }
+            sumOtherWords += droppedWord.getPoints();
         }
 
         if( !checkLettersFromDraw(round, mainDroppedWord)){
@@ -75,6 +76,7 @@ public class WordServiceImpl implements WordService {
         if(!validTurn){
             total = 0;
         }
+        Word mainWord = new Word(mainDroppedWord.getValue(), mainDroppedWord.getReference(), mainDroppedWord.getPoints() - sumOtherWords, valid, scrabble);
         return new WordResult(mainWord, total, subWordList);
     }
 
