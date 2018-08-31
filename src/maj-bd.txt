@@ -1,0 +1,2 @@
+Mise à jour suite à l'arrivée du champs anonymous.
+db.user.update({}, {$set:{anonymous: false}}, {multi:true});

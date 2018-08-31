@@ -4,6 +4,7 @@ Quand on tape une lettre sur le plateau, déplacer la case en fonction du sens d
 
 Fonction gérer ses parties
 
+Faire un jeu "find the top" qui n'a pas de temps limite, qui se joue par équipe, quand quelqu'un a trouvé le top, on passe au coup suivant.
 ----
 TODO: faire le logout (deloguer l'utilisateur)
 TODO: sortir d'un jeu

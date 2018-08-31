@@ -17,6 +17,7 @@ import org.lct.game.ws.beans.model.ChatMessage;
 import org.lct.game.ws.dao.ChatRepository;
 import org.lct.game.ws.dao.UserRepository;
 import org.lct.game.ws.filters.AdminFilter;
+import org.lct.game.ws.filters.AnonymousFilter;
 import org.lct.game.ws.filters.AuthenticationFilter;
 import org.lct.game.ws.controllers.services.EventService;
 import org.lct.game.ws.services.GameService;
@@ -169,6 +170,15 @@ public class Application {
         registrationBean.setOrder(0);
         return registrationBean;
     }
+    @Bean
+    public FilterRegistrationBean anonymousFilterBean() {
+        FilterRegistrationBean registrationBean = new FilterRegistrationBean();
+        AnonymousFilter anonymousFilter = new AnonymousFilter(playGameService);
+        registrationBean.setFilter(anonymousFilter);
+        registrationBean.addUrlPatterns("/play/*");
+        registrationBean.setOrder(1);
+        return registrationBean;
+    }
 
     @Bean
     public FilterRegistrationBean adminFilterBean() {
@@ -176,7 +186,7 @@ public class Application {
         AdminFilter adminFilter = new AdminFilter(userRepository, adminList);
         registrationBean.setFilter(adminFilter);
         registrationBean.addUrlPatterns("/admin/*");
-        registrationBean.setOrder(1);
+        registrationBean.setOrder(2);
         return registrationBean;
     }
 

@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,8 +31,9 @@ public class User {
     private final String nickname;
     private final List<String> clubIds;
     private final List<String> friendIds;
+    private final boolean anonymous;
 
-    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink, @JsonProperty("nickname") String nickname, @JsonProperty("clubIds") List<String> clubIds, @JsonProperty("friendIds") List<String> friendIds) {
+    public User(@JsonProperty("_id") String id, @JsonProperty("token") String token, @JsonProperty("name") String name, @JsonProperty("email") String email, @JsonProperty("profilePictureURL") String profilPictureURL, @JsonProperty("profileLink") String profilLink, @JsonProperty("nickname") String nickname, @JsonProperty("clubIds") List<String> clubIds, @JsonProperty("friendIds") List<String> friendIds, @JsonProperty("anonymous") boolean anonymous) {
         this.token = token;
         this.name = name;
         this.email = email;
@@ -39,6 +41,7 @@ public class User {
         this.profilPictureURL = profilPictureURL;
         this.profilLink = profilLink;
         this.nickname = nickname;
+        this.anonymous = anonymous;
         this.clubIds = clubIds != null ? new ArrayList<String>(clubIds) : new ArrayList<String>();
         this.friendIds = friendIds != null ? new ArrayList<String>(friendIds) : new ArrayList<String>();
     }
@@ -77,6 +80,10 @@ public class User {
 
     public List<String> getFriendIds() {
         return friendIds;
+    }
+
+    public boolean isAnonymous() {
+        return anonymous;
     }
 
     @Override

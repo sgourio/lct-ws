@@ -104,9 +104,9 @@ public class AuthenticationController {
                 nickname = userinfoplus.getName() + RandomStringUtils.randomNumeric(8);
             }
         }
-        user = new User(userId, null, userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds);
+        user = new User(userId, null, userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds, false);
         Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
-        user = new User(user.getId(), token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds);
+        user = new User(user.getId(), token.getToken(), userinfoplus.getName(), userinfoplus.getEmail(), userinfoplus.getPicture(), userinfoplus.getLink(), nickname, clubIds, friendIds, false);
         userRepository.save(user);
 
         return token;
@@ -139,12 +139,28 @@ public class AuthenticationController {
                 nickname = facebookUser.getName() + RandomStringUtils.randomNumeric(8);
             }
         }
-        user = new User(userId, null, facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds);
+        user = new User(userId, null, facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds, false);
         Token token = AuthUtils.createToken("LCT", user, userService.isAdmin(user));
-        user = new User(user.getId(), token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds);
+        user = new User(user.getId(), token.getToken(), facebookUser.getName(), facebookUser.getEmail(), "http://graph.facebook.com/"+facebookUser.getId()+"/picture", facebookUser.getLink(), nickname, clubIds, friendIds, false);
 
         userRepository.save(user);
 
+        return token;
+    }
+
+    @RequestMapping(value="/anonymous", method= RequestMethod.POST)
+    @ResponseStatus(value= HttpStatus.OK)
+    @ResponseBody
+    public Token autenticateAnonymous() throws IncompleteGameException, IOException, JOSEException {
+        logger.info("Login anonymous");
+        List<String> friendIds = new ArrayList<>();
+        List<String> clubIds = new ArrayList<>();
+        String random = RandomStringUtils.randomNumeric(8);
+        String name = "anonymous-" + random;
+        User user = new User(null, null, name, null, null, null, name, clubIds, friendIds, true);
+        Token token = AuthUtils.createToken("LCT", user, false);
+        user = new User(null, token.getToken(), name, null, null, null, name, clubIds, friendIds, true);
+        userRepository.save(user);
         return token;
     }
 

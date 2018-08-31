@@ -66,10 +66,12 @@ public class AutoGameLauncherJob extends QuartzJobBean {
         boolean next21h = false;
         boolean next21h30 = false;
         boolean next22h = false;
+        boolean nextOpenForAll = false;
         DateTime endOf75s = null;
         DateTime endOf90s = null;
         DateTime endOf2min = null;
         DateTime endOf3min = null;
+        DateTime endOfOpenForAll = null;
 
         List<PlayGame> actualPlayGameMetaBeanList = playGameService.getActualPlayGame();
         for( PlayGame playGameMetaBean : actualPlayGameMetaBeanList ){
@@ -122,6 +124,13 @@ public class AutoGameLauncherJob extends QuartzJobBean {
                 next21h30 = true;
             }else if( playGameMetaBean.getOwner().equals("auto") && playGameMetaBean.getName().equals("Rdv 22h") ){
                 next22h = true;
+            }else if( playGameMetaBean.getOwner().equals("auto") && playGameMetaBean.getName().equals("Ouverte à tous") ) {
+                if (PlayGameStatus.opened.getId().equals(playGameMetaBean.getStatus())) {
+                    nextOpenForAll = true;
+                } else if (PlayGameStatus.running.getId().equals(playGameMetaBean.getStatus())) {
+                    DateTime endDate = new DateTime(playGameMetaBean.getEndDate());
+                    endOfOpenForAll = endDate;
+                }
             }
         }
 
@@ -136,6 +145,9 @@ public class AutoGameLauncherJob extends QuartzJobBean {
         }
         if( !next3min ){
             setUpNextGame(endOf3min, 180, "Comme en tournois", gameList.remove(0));
+        }
+        if( !nextOpenForAll ){
+            setUpNextGame(endOfOpenForAll, 120, "Ouverte à tous", gameList.remove(0));
         }
         if( !next19h ){
             setUpNextGame(DateTime.now().withTimeAtStartOfDay().withHourOfDay(19).minusMinutes(3), 120, "Rdv 19h", gameList.remove(0));

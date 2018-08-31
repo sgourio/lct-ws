@@ -6,11 +6,8 @@
 
 package org.lct.game.ws.controllers;
 
-import com.google.api.client.http.MultipartContent;
-import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.lct.game.ws.beans.model.MonthlyScore;
 import org.lct.game.ws.beans.model.User;
@@ -29,12 +26,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.Part;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -97,7 +91,7 @@ public class AccountController {
         if( existing != null && !existing.getId().equals(user.getId())){
             return new ResponseEntity(HttpStatus.CONFLICT);
         }
-        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), nickname, user.getClubIds(), user.getFriendIds());
+        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), user.getProfilPictureURL(), user.getProfilLink(), nickname, user.getClubIds(), user.getFriendIds(), false);
         u = userRepository.save(u);
         eventService.registrerUser(u);
         return new ResponseEntity(HttpStatus.OK);
@@ -167,7 +161,7 @@ public class AccountController {
 
 
         suffix = suffix + "?r=" + RandomStringUtils.randomAlphabetic(3);
-        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds());
+        User u = new User(user.getId(), user.getToken(), user.getName(), user.getEmail(), "/picture/" + user.getId() + "/profil." +  suffix , user.getProfilLink(), user.getNickname(), user.getClubIds(), user.getFriendIds(), false);
         u = userRepository.save(u);
         return "ok";
     }
