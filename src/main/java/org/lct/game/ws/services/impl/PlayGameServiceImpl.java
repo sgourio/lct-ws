@@ -308,7 +308,7 @@ public class PlayGameServiceImpl implements PlayGameService {
                 draw.remove(square.getDroppedTile());
             }
         }
-        return new org.lct.game.ws.beans.view.Round(playGame.getId(), -1, boardGame, draw, new ArrayList<DroppedTile>(), new ArrayList<DroppedTile>(), null, null, lastRound.getDroppedWord());
+        return new org.lct.game.ws.beans.view.Round(playGame.getId(), nbRounds + 1, boardGame, draw, new ArrayList<DroppedTile>(), new ArrayList<DroppedTile>(), null, null, lastRound.getDroppedWord());
     }
 
     @Override

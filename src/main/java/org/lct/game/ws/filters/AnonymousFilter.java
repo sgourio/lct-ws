@@ -21,6 +21,7 @@ import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
 import org.springframework.web.servlet.HandlerMapping;
+import sun.misc.Regexp;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -30,6 +31,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by sgourio on 03/06/15.
@@ -57,19 +60,24 @@ public class AnonymousFilter extends GenericFilterBean{
             if (!user.isAnonymous()){
                 chain.doFilter(request, response);
             } else {
-                Map<String, String> pathVariables = (Map<String, String>) request.getAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE);
-                String playGameId = pathVariables.get("id");
-                if (!StringUtils.isBlank(playGameId)) {
-                    PlayGame playGame = playGameService.getPlayGame(playGameId);
-                    if (playGame != null && playGame.getName().equals("Ouverte à tous")) {
-                        chain.doFilter(request, response);
+                Pattern pattern = Pattern.compile("/play/game/([^/]*)/?.*");
+                Matcher matcher = pattern.matcher(((HttpServletRequest) request).getRequestURI());
+                if (matcher.find()){
+                    String playGameId = matcher.group(1);
+                    if (!StringUtils.isBlank(playGameId)) {
+                        PlayGame playGame = playGameService.getPlayGame(playGameId);
+                        if (playGame != null && playGame.getName().equals("Ouverte à tous")) {
+                            chain.doFilter(request, response);
+                        } else {
+                            HttpServletResponse httpResponse = (HttpServletResponse) response;
+                            httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorised for anonymous user");
+                        }
                     } else {
                         HttpServletResponse httpResponse = (HttpServletResponse) response;
                         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorised for anonymous user");
                     }
-                } else {
-                    HttpServletResponse httpResponse = (HttpServletResponse) response;
-                    httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorised for anonymous user");
+                } else if (((HttpServletRequest) request).getRequestURI().equals("/play/games")){
+                    chain.doFilter(request, response);
                 }
             }
         }

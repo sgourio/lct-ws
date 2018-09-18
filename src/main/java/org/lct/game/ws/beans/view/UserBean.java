@@ -15,13 +15,15 @@ public class UserBean {
     private final String profilPictureURL;
     private final String profilLink;
     private final String nickname;
+    private final boolean anonymous;
 
-    public UserBean(String id, String name, String profilPictureURL, String profilLink, String nickname) {
+    public UserBean(String id, String name, String profilPictureURL, String profilLink, String nickname, boolean anonymous) {
         this.id = id;
         this.name = name;
         this.profilPictureURL = profilPictureURL;
         this.profilLink = profilLink;
         this.nickname = nickname;
+        this.anonymous = anonymous;
     }
 
     public String getId() {
@@ -42,5 +44,9 @@ public class UserBean {
 
     public String getNickname() {
         return nickname;
+    }
+
+    public boolean isAnonymous() {
+        return anonymous;
     }
 }

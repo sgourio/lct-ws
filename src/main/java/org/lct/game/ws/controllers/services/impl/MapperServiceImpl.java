@@ -33,7 +33,7 @@ public class MapperServiceImpl implements MapperService {
 
     @Override
     public UserBean toUserBean(User user){
-        return new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname());
+        return new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname(), user.isAnonymous());
     }
 
     @Override

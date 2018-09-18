@@ -66,7 +66,7 @@ public class AdminController {
             List<User> userList = userService.findUserListByClub(club.getId());
             List<UserBean> userBeanList = new ArrayList<>();
             for (User user : userList) {
-                userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname()));
+                userBeanList.add(new UserBean(user.getId(), user.getName(), user.getProfilPictureURL(), user.getProfilLink(), user.getNickname(), user.isAnonymous()));
             }
             result.add(new ClubBean(userBeanList, club.getStatus(), club.getName(), club.getCreationDate(), club.getId(), club.getAdmins()));
         }

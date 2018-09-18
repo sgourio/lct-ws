@@ -148,7 +148,7 @@ public class AuthenticationController {
         return token;
     }
 
-    @RequestMapping(value="/anonymous", method= RequestMethod.POST)
+    @RequestMapping(value="/anonymous", method= RequestMethod.GET)
     @ResponseStatus(value= HttpStatus.OK)
     @ResponseBody
     public Token autenticateAnonymous() throws IncompleteGameException, IOException, JOSEException {
