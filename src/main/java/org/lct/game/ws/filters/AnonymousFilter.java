@@ -76,8 +76,14 @@ public class AnonymousFilter extends GenericFilterBean{
                         HttpServletResponse httpResponse = (HttpServletResponse) response;
                         httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorised for anonymous user");
                     }
-                } else if (((HttpServletRequest) request).getRequestURI().equals("/play/games")){
-                    chain.doFilter(request, response);
+                } else {
+                    if (httpRequest.getRequestURI().equals("/play/games")
+                            || httpRequest.getRequestURI().startsWith("/play/chat")){
+                        chain.doFilter(request, response);
+                    } else {
+                        HttpServletResponse httpResponse = (HttpServletResponse) response;
+                        httpResponse.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorised for anonymous user");
+                    }
                 }
             }
         }
