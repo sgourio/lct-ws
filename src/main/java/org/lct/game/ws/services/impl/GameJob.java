@@ -39,34 +39,39 @@ public class GameJob extends QuartzJobBean implements InterruptableJob {
 
     @Override
     protected void executeInternal(JobExecutionContext context) throws JobExecutionException {
-        DateTime atTime = new DateTime(context.getFireTime());
-        PlayGame playGame = playGameService.getPlayGame(playGameId);
-        DateTime playGameEndDate = new DateTime(playGame.getEndDate())  ;
+        try {
+            DateTime atTime = new DateTime(context.getFireTime());
+            PlayGame playGame = playGameService.getPlayGame(playGameId);
+            DateTime playGameEndDate = new DateTime(playGame.getEndDate());
 
-        playGameService.updateScores(playGame, atTime);
-        GameScore gameScore = playGameService.getScores(playGame, atTime);
-        this.eventService.publishScores(playGame, gameScore);
-        boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
-        if ( isFinished) {
-            PlayGame endedGame = playGameService.endGame(playGame);
-            this.eventService.publishMetaData(endedGame);
-            try {
-                context.getScheduler().interrupt(context.getFireInstanceId());
-            } catch (UnableToInterruptJobException e) {
-                logger.error("",e);
-            }
-        } else {
-            Round round = playGameService.getRound(playGame, atTime);
-            if (round != null) {
-                if (round.getRoundNumber() == 1) {
-                    playGame = playGameService.startPlayGame(playGame);
-                    this.eventService.publishMetaData(playGame);
+            playGameService.updateScores(playGame, atTime);
+            GameScore gameScore = playGameService.getScores(playGame, atTime);
+            this.eventService.publishScores(playGame, gameScore);
+            boolean isFinished = atTime.plusSeconds(2).isAfter(playGameEndDate);
+            if (isFinished) {
+                PlayGame endedGame = playGameService.endGame(playGame);
+                this.eventService.publishMetaData(endedGame);
+                try {
+                    context.getScheduler().interrupt(context.getFireInstanceId());
+                } catch (UnableToInterruptJobException e) {
+                    logger.error("", e);
                 }
-                this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
-            }
-            logger.info("Game " + playGame + ", round " + round);
+            } else {
+                Round round = playGameService.getRound(playGame, atTime);
+                if (round != null) {
+                    if (round.getRoundNumber() == 1) {
+                        playGame = playGameService.startPlayGame(playGame);
+                        this.eventService.publishMetaData(playGame);
+                    }
+                    this.eventService.publishTimer(playGame, playGameService.getTimer(playGame));
+                }
+                logger.info("Game " + playGame + ", round " + round);
 
-            this.eventService.publishRound(playGame, round);
+                this.eventService.publishRound(playGame, round);
+            }
+        } catch (Exception e){
+            logger.error("Job error", e);
+            throw new JobExecutionException(e);
         }
     }
 

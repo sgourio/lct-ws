@@ -316,15 +316,19 @@ public class GameServiceImpl implements GameService{
     @Override
     public void automaticGameBuilder(){
         JobDetail jobDetail = buildJobDetail();
-        ScheduleBuilder scheduleBuilder = DailyTimeIntervalScheduleBuilder
-                .dailyTimeIntervalSchedule()
-                .onEveryDay()
-                .withIntervalInSeconds(5)
-                .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(3, 30))
-                .endingDailyAt(TimeOfDay.hourAndMinuteOfDay(5, 30));
+
+//        ScheduleBuilder scheduleBuilder = DailyTimeIntervalScheduleBuilder
+//                .dailyTimeIntervalSchedule()
+//                .onEveryDay()
+//                .withIntervalInSeconds(5)
+//                .startingDailyAt(TimeOfDay.hourAndMinuteOfDay(3, 30))
+//                .endingDailyAt(TimeOfDay.hourAndMinuteOfDay(5, 30));
         TriggerBuilder triggerBuilder =  TriggerBuilder.newTrigger();
         triggerBuilder.startNow();
-        Trigger trigger = triggerBuilder.withSchedule(scheduleBuilder).build();
+
+        Trigger trigger = triggerBuilder.withSchedule(SimpleScheduleBuilder.simpleSchedule()
+                .withIntervalInSeconds(5)
+                .repeatForever()).build();
         Scheduler scheduler = schedulerFactoryBean.getScheduler();
         try {
             if (!scheduler.isStarted()) {
